@@ -452,7 +452,7 @@ var GameBase;
             _this.preLoaderState = GameBase.Preloader;
             // loading all* game assets
             _this.loaderState = GameBase.Loader;
-            _this.canvasSize = [1280, 720];
+            _this.canvasSize = ["100%", 720];
             _this.initialState = 'Main';
             return _this;
         }
@@ -644,9 +644,7 @@ var GameBase;
             };
             // toca o proximo pack
             Controller.prototype.playNext = function () {
-                console.log('PLAY NEXT');
                 if (this.stepPacks.length) {
-                    console.log('---- next OK');
                     this.currentPack = this.stepPacks[0];
                     this.currentPack.create();
                     this.add(this.currentPack);
@@ -682,8 +680,12 @@ var GameBase;
                 // se esse pack não tiver mais steps, remove
                 if (!this.currentPack.steps.length) {
                     console.log('remove pack');
-                    this.currentPack.destroy();
-                    this.stepPacks.shift();
+                    var lastPack = this.stepPacks.shift();
+                    // this.currentPack.destroy();
+                    // espera a ultima nota animar
+                    setTimeout(function () {
+                        lastPack.destroy();
+                    }, 1500);
                     // se ainda houver packs, seta o current para o proximo
                     if (this.stepPacks.length) {
                         console.log('atualiza current para o proximo');
@@ -760,6 +762,54 @@ var GameBase;
                 }
                 return randomDirection;
             };
+            Step.prototype.kill = function (hit) {
+                var _this = this;
+                var time = 500;
+                // se acertou anima pra direção 
+                if (hit) {
+                    var x = 0;
+                    var y = 0;
+                    var distance = 150;
+                    switch (this.direction) {
+                        case GameBase.Step.Direction.TOP:
+                            y -= distance;
+                            break;
+                        case GameBase.Step.Direction.DOWN:
+                            y += distance;
+                            break;
+                        case GameBase.Step.Direction.LEFT:
+                            x -= distance;
+                            break;
+                        case GameBase.Step.Direction.RIGHT:
+                            x += distance;
+                            break;
+                    }
+                    var tween = this.addTween(this).to({
+                        alpha: 0,
+                        y: y,
+                        x: x
+                    }, time, Phaser.Easing.Back.Out, true);
+                    tween.onComplete.add(function () {
+                        _this.destroy();
+                    }, this);
+                }
+                else {
+                    console.log('rotation:', this.rotation);
+                    // centraliza
+                    this.bg.anchor.set(0.5, 0.5);
+                    this.x += this.width / 2;
+                    this.y += this.height / 2;
+                    var tween = this.addTween(this).to({
+                        rotation: 5,
+                        width: this.width * 2,
+                        height: this.height * 2,
+                        alpha: 0
+                    }, time, Phaser.Easing.Back.Out, true);
+                    tween.onComplete.add(function () {
+                        _this.destroy();
+                    }, this);
+                }
+            };
             return Step;
         }(Pk.PkElement));
         Step_1.Step = Step;
@@ -834,11 +884,8 @@ var GameBase;
                 if (!this.currentStep)
                     return false;
                 //
-                // se não acertou, ignora
-                if (!hit)
-                    return false;
-                //
-                this.steps.shift().destroy(); // remove o primeiro
+                var step = this.steps.shift();
+                step.kill(hit);
                 this.currentStep = this.steps.length ? this.steps[0] : null; // atualiza o atual
                 this.updatePosition(); // atualiza posição
                 return true;

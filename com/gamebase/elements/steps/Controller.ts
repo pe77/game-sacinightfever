@@ -53,10 +53,8 @@ module GameBase
             // toca o proximo pack
             playNext():boolean
             {
-                console.log('PLAY NEXT')
                 if(this.stepPacks.length)
                 {
-                    console.log('---- next OK');
                     this.currentPack = this.stepPacks[0];
 
                     this.currentPack.create();
@@ -107,8 +105,15 @@ module GameBase
                 {
                     console.log('remove pack')
 
-                    this.currentPack.destroy();
-                    this.stepPacks.shift();
+                    
+                    
+                    var lastPack:Step.StepPack = this.stepPacks.shift();
+                    // this.currentPack.destroy();
+
+                    // espera a ultima nota animar
+                    setTimeout(()=>{
+                        lastPack.destroy();
+                    }, 1500)
 
                     // se ainda houver packs, seta o current para o proximo
                     if(this.stepPacks.length)

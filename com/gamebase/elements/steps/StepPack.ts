@@ -89,13 +89,10 @@ module GameBase
                 if(!this.currentStep)
                     return false;
                 //
+                
+                var step:Step.Step = this.steps.shift();
+                step.kill(hit);
 
-                // se não acertou, ignora
-                if(!hit)
-                    return false;
-                //
-
-                this.steps.shift().destroy(); // remove o primeiro
                 this.currentStep = this.steps.length ? this.steps[0] : null; // atualiza o atual
                 this.updatePosition(); // atualiza posição
                 
