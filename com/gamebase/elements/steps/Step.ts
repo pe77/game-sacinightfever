@@ -17,6 +17,7 @@ module GameBase
             create()
             {
                 // var bodySprite:Phaser.Sprite = Pk.PkUtils.createSquare(this.game, 50, 50);
+                console.log('CREATING STEP')
 
                 var spriteName = 'step-';
                 switch(this.direction)
@@ -41,8 +42,6 @@ module GameBase
                 this.bg = this.game.add.sprite(0, 0, spriteName);
 
                 this.add(this.bg);
-                
-                
             }
 
             static getRandomDirection():Step.Direction

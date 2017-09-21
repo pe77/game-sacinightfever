@@ -7,6 +7,7 @@ module GameBase
  
 		enterKey:Phaser.Key;
 
+		controller:Step.Controller;
 
 		init(...args:any[])
 		{
@@ -31,6 +32,59 @@ module GameBase
                 // this.transition.change('Menu', 1111, 'text', {a:true, b:[1, 2]});  // return with some foo/bar args
             }, this);
 
+			this.controller = new Step.Controller(this.game);
+			this.controller.addStepPack(this.generateStepPack());
+			this.controller.create();
+
+			this.controller.x = this.game.world.centerX;
+			this.controller.y = 150;
+
+			this.game.input.keyboard.addKey(Phaser.Keyboard.DOWN).onDown.add(()=>{
+                this.pressStep(Step.Direction.DOWN);
+			}, this);
+			
+			this.game.input.keyboard.addKey(Phaser.Keyboard.UP).onDown.add(()=>{
+                this.pressStep(Step.Direction.TOP);
+			}, this);
+			
+			this.game.input.keyboard.addKey(Phaser.Keyboard.LEFT).onDown.add(()=>{
+                this.pressStep(Step.Direction.LEFT);
+			}, this);
+			
+			this.game.input.keyboard.addKey(Phaser.Keyboard.RIGHT).onDown.add(()=>{
+                this.pressStep(Step.Direction.RIGHT);
+			}, this);
+			
+			// toca o primeiro pack
+			this.controller.playNext();
+
+			// sempre que o pack acabar...
+			this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, ()=>{
+				console.log('PACK OVER ENVET');
+
+				// add outro pack
+				this.controller.addStepPack(this.generateStepPack());
+
+				// toca
+				this.controller.playNext();
+
+			}, this);
+		}
+		
+		pressStep(direction:Step.Direction)
+		{
+			// se apertou a direção certa
+			if(this.controller.playDirection(direction))
+			{
+				this.controller.killStep(true);
+			}else{
+				this.controller.killStep(false);
+			}
+			
+		}
+
+		generateStepPack():Step.StepPack
+		{
 			// cria um pack
 			var stepPack:Step.StepPack = new Step.StepPack(this.game);
 
@@ -39,16 +93,8 @@ module GameBase
 				stepPack.addStep(new Step.Step(this.game, Step.Step.getRandomDirection()));
 			//
 
-			var controller:Step.Controller = new Step.Controller(this.game);
-			controller.addStepPack(stepPack);
-			controller.create();
-
-			// toca o primeiro pack
-			controller.playNext();
-
-			controller.x = this.game.world.centerX;
-
-    	}
+			return stepPack;
+		}
 		
 		render()
         {
