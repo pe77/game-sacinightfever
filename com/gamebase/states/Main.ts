@@ -31,6 +31,22 @@ module GameBase
                 // this.transition.change('Menu', 1111, 'text', {a:true, b:[1, 2]});  // return with some foo/bar args
             }, this);
 
+			// cria um pack
+			var stepPack:Step.StepPack = new Step.StepPack(this.game);
+
+			// add uns passos
+			for(var i = 0; i < 7; i++)
+				stepPack.addStep(new Step.Step(this.game, Step.Step.getRandomDirection()));
+			//
+
+			var controller:Step.Controller = new Step.Controller(this.game);
+			controller.addStepPack(stepPack);
+			controller.create();
+
+			// toca o primeiro pack
+			controller.playNext();
+
+			controller.x = this.game.world.centerX;
 
     	}
 		

@@ -51,6 +51,13 @@ module GameBase {
             // scripts
             this.load.script('gray', 'assets/default/scripts/filters/Gray.js')
 
+
+            // step
+            this.load.image('step-top', 'assets/states/main/images/step/step-top.png');
+            this.load.image('step-down', 'assets/states/main/images/step/step-down.png');
+            this.load.image('step-left', 'assets/states/main/images/step/step-left.png');
+            this.load.image('step-right', 'assets/states/main/images/step/step-right.png');
+
             // generic
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');

@@ -569,6 +569,11 @@ var GameBase;
             //  ** ADDING Other things  ** //
             // scripts
             this.load.script('gray', 'assets/default/scripts/filters/Gray.js');
+            // step
+            this.load.image('step-top', 'assets/states/main/images/step/step-top.png');
+            this.load.image('step-down', 'assets/states/main/images/step/step-down.png');
+            this.load.image('step-left', 'assets/states/main/images/step/step-left.png');
+            this.load.image('step-right', 'assets/states/main/images/step/step-right.png');
             // generic
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');
@@ -580,6 +585,165 @@ var GameBase;
         return Loader;
     }(Pk.PkLoader));
     GameBase.Loader = Loader;
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
+    var Step;
+    (function (Step) {
+        var Base = (function (_super) {
+            __extends(Base, _super);
+            function Base() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            return Base;
+        }(Pk.PkElement));
+        Step.Base = Base;
+    })(Step = GameBase.Step || (GameBase.Step = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
+    var Step;
+    (function (Step) {
+        var Controller = (function (_super) {
+            __extends(Controller, _super);
+            function Controller() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.stepPacks = [];
+                return _this;
+            }
+            Controller.prototype.addStepPack = function (stepPack) {
+                this.stepPacks.push(stepPack);
+                this.add(stepPack);
+            };
+            Controller.prototype.create = function () {
+                // cria os packs, 
+                for (var i in this.stepPacks)
+                    this.stepPacks[i].create();
+                //
+            };
+            // toca a proxima
+            Controller.prototype.playNext = function () {
+                var play = false;
+                for (var i in this.stepPacks) {
+                    if (!this.stepPacks[i].hasPlay) {
+                        play = true;
+                        this.stepPacks[i].show();
+                        break;
+                    }
+                }
+                return play;
+            };
+            return Controller;
+        }(Pk.PkElement));
+        Step.Controller = Controller;
+    })(Step = GameBase.Step || (GameBase.Step = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
+    var Step;
+    (function (Step_1) {
+        var Step = (function (_super) {
+            __extends(Step, _super);
+            function Step(game, direction) {
+                var _this = _super.call(this, game) || this;
+                _this.direction = direction;
+                return _this;
+            }
+            Step.prototype.create = function () {
+                // var bodySprite:Phaser.Sprite = Pk.PkUtils.createSquare(this.game, 50, 50);
+                var spriteName = 'step-';
+                switch (this.direction) {
+                    case GameBase.Step.Direction.DOWN:
+                        spriteName += 'down';
+                        break;
+                    case GameBase.Step.Direction.LEFT:
+                        spriteName += 'left';
+                        break;
+                    case GameBase.Step.Direction.TOP:
+                        spriteName += 'top';
+                        break;
+                    case GameBase.Step.Direction.RIGHT:
+                        spriteName += 'right';
+                        break;
+                }
+                this.bg = this.game.add.sprite(0, 0, spriteName);
+                this.add(this.bg);
+            };
+            Step.getRandomDirection = function () {
+                var randomDirection;
+                var game = Pk.PkGame.game;
+                switch (game.rnd.integerInRange(1, 4)) {
+                    case 1:
+                        randomDirection = GameBase.Step.Direction.TOP;
+                        break;
+                    case 2:
+                        randomDirection = GameBase.Step.Direction.DOWN;
+                        break;
+                    case 3:
+                        randomDirection = GameBase.Step.Direction.LEFT;
+                        break;
+                    case 4:
+                        randomDirection = GameBase.Step.Direction.RIGHT;
+                        break;
+                }
+                return randomDirection;
+            };
+            return Step;
+        }(Pk.PkElement));
+        Step_1.Step = Step;
+        var Direction;
+        (function (Direction) {
+            Direction[Direction["TOP"] = 0] = "TOP";
+            Direction[Direction["LEFT"] = 1] = "LEFT";
+            Direction[Direction["DOWN"] = 2] = "DOWN";
+            Direction[Direction["RIGHT"] = 3] = "RIGHT";
+        })(Direction = Step_1.Direction || (Step_1.Direction = {}));
+    })(Step = GameBase.Step || (GameBase.Step = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
+    var Step;
+    (function (Step) {
+        var StepPack = (function (_super) {
+            __extends(StepPack, _super);
+            function StepPack() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.steps = [];
+                _this.padding = 10;
+                _this.hasPlay = false;
+                return _this;
+            }
+            StepPack.prototype.addStep = function (step) {
+                this.steps.push(step);
+                this.add(step);
+            };
+            StepPack.prototype.create = function () {
+                // cria os passos, 
+                for (var i in this.steps)
+                    this.steps[i].create();
+                //
+                this.visible = false;
+            };
+            // posiciona as notas
+            StepPack.prototype.show = function () {
+                var _this = this;
+                this.visible = true;
+                // pos as "notas"
+                var i = 0;
+                this.steps.forEach(function (step) {
+                    if (i > 0) {
+                        // pega o ultimo 
+                        var lastStep = _this.steps[i - 1];
+                        // pos o atual abaixo do ultimo
+                        step.y = lastStep.y + lastStep.height + _this.padding;
+                    }
+                    i++;
+                });
+            };
+            return StepPack;
+        }(Pk.PkElement));
+        Step.StepPack = StepPack;
+    })(Step = GameBase.Step || (GameBase.Step = {}));
 })(GameBase || (GameBase = {}));
 /// <reference path='../../pkframe/refs.ts' />
 var GameBase;
@@ -608,6 +772,18 @@ var GameBase;
             this.enterKey.onDown.add(function () {
                 // this.transition.change('Menu', 1111, 'text', {a:true, b:[1, 2]});  // return with some foo/bar args
             }, this);
+            // cria um pack
+            var stepPack = new GameBase.Step.StepPack(this.game);
+            // add uns passos
+            for (var i = 0; i < 7; i++)
+                stepPack.addStep(new GameBase.Step.Step(this.game, GameBase.Step.Step.getRandomDirection()));
+            //
+            var controller = new GameBase.Step.Controller(this.game);
+            controller.addStepPack(stepPack);
+            controller.create();
+            // toca o primeiro pack
+            controller.playNext();
+            controller.x = this.game.world.centerX;
         };
         Main.prototype.render = function () {
             this.game.debug.text('(Main Screen) ', 35, 35);
