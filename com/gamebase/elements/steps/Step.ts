@@ -118,14 +118,13 @@ module GameBase
                     }, this);
                     
                 }else{
-                    console.log('rotation:', this.rotation)
 
+                    
+                    
                     // centraliza
                     this.bg.anchor.set(0.5, 0.5);
                     this.x += this.width  / 2;
                     this.y += this.height / 2;
-
-                    
 
                     var tween:Phaser.Tween = this.addTween(this).to(
                         {

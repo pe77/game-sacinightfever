@@ -100,8 +100,8 @@ module GameBase
                 // remove a ultimo step
                 this.currentPack.killStep(hit);
 
-                // se esse pack não tiver mais steps, remove
-                if(!this.currentPack.steps.length)
+                // se esse pack não tiver mais steps OU errou
+                if(!this.currentPack.steps.length || !hit)
                 {
                     console.log('remove pack')
 
@@ -124,11 +124,13 @@ module GameBase
                         this.stepPacks[0].show();
                     }else
                         this.currentPack = null; // se não houver mais packs
-                    //
-
-                    // dispara o evento de "este pack acabou"
-                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack);
+                    //    
+                    
+                    // se errou, dispara o evento de fim de pack
+                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit);
                 }
+
+                
             }
         }
 

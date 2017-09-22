@@ -90,8 +90,25 @@ module GameBase
                     return false;
                 //
                 
-                var step:Step.Step = this.steps.shift();
-                step.kill(hit);
+                
+
+                // se errou, treme a camera mata todas as outras notas
+                if(!hit)
+                {
+                    // da uma tremida na camera
+                    this.game.camera.shake(0.01, 170);
+
+                    this.steps.forEach(step => {
+                        step.kill(hit);
+                    });
+
+                    this.steps = [];
+
+                }else{
+                    // mata só essa nota
+                    var step:Step.Step = this.steps.shift();
+                    step.kill(hit);
+                }
 
                 this.currentStep = this.steps.length ? this.steps[0] : null; // atualiza o atual
                 this.updatePosition(); // atualiza posição
