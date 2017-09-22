@@ -677,8 +677,8 @@ var GameBase;
                 //
                 // remove a ultimo step
                 this.currentPack.killStep(hit);
-                // se esse pack não tiver mais steps, remove
-                if (!this.currentPack.steps.length) {
+                // se esse pack não tiver mais steps OU errou
+                if (!this.currentPack.steps.length || !hit) {
                     console.log('remove pack');
                     var lastPack = this.stepPacks.shift();
                     // this.currentPack.destroy();
@@ -694,9 +694,9 @@ var GameBase;
                     }
                     else
                         this.currentPack = null; // se não houver mais packs
-                    //
-                    // dispara o evento de "este pack acabou"
-                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack);
+                    //    
+                    // se errou, dispara o evento de fim de pack
+                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit);
                 }
             };
             return Controller;
@@ -794,7 +794,6 @@ var GameBase;
                     }, this);
                 }
                 else {
-                    console.log('rotation:', this.rotation);
                     // centraliza
                     this.bg.anchor.set(0.5, 0.5);
                     this.x += this.width / 2;
@@ -884,8 +883,20 @@ var GameBase;
                 if (!this.currentStep)
                     return false;
                 //
-                var step = this.steps.shift();
-                step.kill(hit);
+                // se errou, treme a camera mata todas as outras notas
+                if (!hit) {
+                    // da uma tremida na camera
+                    this.game.camera.shake(0.01, 170);
+                    this.steps.forEach(function (step) {
+                        step.kill(hit);
+                    });
+                    this.steps = [];
+                }
+                else {
+                    // mata só essa nota
+                    var step = this.steps.shift();
+                    step.kill(hit);
+                }
                 this.currentStep = this.steps.length ? this.steps[0] : null; // atualiza o atual
                 this.updatePosition(); // atualiza posição
                 return true;
@@ -943,12 +954,15 @@ var GameBase;
             // toca o primeiro pack
             this.controller.playNext();
             // sempre que o pack acabar...
-            this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function () {
+            this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (hit) {
                 console.log('PACK OVER ENVET');
-                // add outro pack
-                _this.controller.addStepPack(_this.generateStepPack());
-                // toca
-                _this.controller.playNext();
+                // espera um pouquinho
+                setTimeout(function () {
+                    // add outro pack
+                    _this.controller.addStepPack(_this.generateStepPack());
+                    // toca
+                    _this.controller.playNext();
+                }, 500);
             }, this);
         };
         Main.prototype.pressStep = function (direction) {

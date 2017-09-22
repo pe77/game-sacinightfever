@@ -59,14 +59,20 @@ module GameBase
 			this.controller.playNext();
 
 			// sempre que o pack acabar...
-			this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, ()=>{
+			this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, (hit)=>{
 				console.log('PACK OVER ENVET');
 
-				// add outro pack
-				this.controller.addStepPack(this.generateStepPack());
+				// espera um pouquinho
+				setTimeout(()=>{
+					// add outro pack
+					this.controller.addStepPack(this.generateStepPack());
 
-				// toca
-				this.controller.playNext();
+					// toca
+					this.controller.playNext();
+				}, 500)
+
+
+				
 
 			}, this);
 		}
