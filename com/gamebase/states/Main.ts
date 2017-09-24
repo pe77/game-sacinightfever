@@ -8,6 +8,9 @@ module GameBase
 		enterKey:Phaser.Key;
 
 		controller:Step.Controller;
+		likometer:Bar.Likometer;
+		time:Bar.Time;
+		timee:number = 30; // ms
 
 		init(...args:any[])
 		{
@@ -36,8 +39,8 @@ module GameBase
 			this.controller.addStepPack(this.generateStepPack());
 			this.controller.create();
 
-			this.controller.x = this.game.world.centerX;
-			this.controller.y = 150;
+			this.controller.x = this.game.world.centerX - this.controller.width/2;
+			this.controller.y = 100;
 
 			this.game.input.keyboard.addKey(Phaser.Keyboard.DOWN).onDown.add(()=>{
                 this.pressStep(Step.Direction.DOWN);
@@ -62,19 +65,75 @@ module GameBase
 			this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, (hit)=>{
 				console.log('PACK OVER ENVET');
 
+				// para o tempo
+				this.time.stopCount();
+
 				// espera um pouquinho
 				setTimeout(()=>{
-					// add outro pack
-					this.controller.addStepPack(this.generateStepPack());
-
-					// toca
-					this.controller.playNext();
-				}, 500)
-
-
-				
+					this.resetPacks();
+				}, 500);
 
 			}, this);
+
+			var audience:Audience.Audience = new Audience.Audience(this.game);
+			audience.create();
+
+			
+			this.likometer = new Bar.Likometer(
+				this.game, 
+				this.game.add.sprite(0, 0, 'likebar-back'),
+				this.game.add.sprite(0, 0, 'likebar-bar'),
+				this.game.add.sprite(0, 0, 'likebar-border')
+			); 
+
+			this.likometer.create();
+			this.likometer.setValue(80);
+			console.log('*--- ', this.likometer.value)
+
+			this.likometer.y += 80;
+			// likometer.x = this.game.world.width - likometer.width - 20;
+			this.likometer.x = this.game.world.width - this.likometer.backSprite.width - 20;
+			// likometer.x += 100;
+
+			// cria a barra de tempo e coloca ao lado do controller
+			this.time = new Bar.Time(this.game);
+			this.time.create();
+			this.time.x = this.controller.x + this.controller.width;
+			this.time.y = this.controller.y + 27;
+
+			// this.time.setValue(80);
+			
+			setTimeout(()=>{
+				// this.time.setValue(80);
+			}, 2000);
+
+			// inicia contagem de tempo
+			this.time.startCount(this.timee); // ms
+
+			this.time.event.add(Bar.E.TimeEvent.OnEndCount, ()=>{
+				console.log('terminou contato')
+				// se tiver alguma nota, erra remove contagem
+				this.likometer.removeValue(40);
+
+				// força o erro
+				this.controller.killStep(false);
+
+				// reseta os steps
+				// this.resetPacks();
+			}, this);
+		}
+
+		resetPacks()
+		{
+			console.log()
+			// add outro pack
+			this.controller.addStepPack(this.generateStepPack());
+
+			// começa a contagem
+			this.time.startCount(this.timee);
+
+			// toca
+			this.controller.playNext();
 		}
 		
 		pressStep(direction:Step.Direction)
@@ -82,8 +141,12 @@ module GameBase
 			// se apertou a direção certa
 			if(this.controller.playDirection(direction))
 			{
+				this.likometer.addValue(3);
 				this.controller.killStep(true);
+
 			}else{
+				
+				this.likometer.removeValue(30);
 				this.controller.killStep(false);
 			}
 			

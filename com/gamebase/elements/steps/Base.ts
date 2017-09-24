@@ -14,7 +14,8 @@ module GameBase
             create()
             {
                 console.log('creating BASE')
-                this.back = Pk.PkUtils.createSquare(this.game, 60, 60);
+                this.back = this.game.add.sprite(0, 0, 'step-back');
+                // this.back = Pk.PkUtils.createSquare(this.game, 60, 60);
                 this.back.alpha = 0.7;
 
                 this.add(this.back);

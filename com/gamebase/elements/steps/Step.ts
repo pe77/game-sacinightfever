@@ -73,7 +73,7 @@ module GameBase
 
             kill(hit:boolean)
             {
-                var time:number = 500;
+                var time:number = 300;
 
                 // se acertou anima pra direção 
                 if(hit)
@@ -81,7 +81,7 @@ module GameBase
                     var x:number = 0;
                     var y:number = 0;
 
-                    var distance:number = 150;
+                    var distance:number = 100;
                     
 
                     switch(this.direction)

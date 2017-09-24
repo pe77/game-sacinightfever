@@ -53,6 +53,15 @@ module GameBase
             // toca o proximo pack
             playNext():boolean
             {
+                // se houver algum, remove as notas
+                if(this.currentPack && this.currentPack.steps.length)
+                {
+                    console.log('destroy')
+                    // this.currentPack.visible = false;
+                    this.currentPack.killStep(false);
+                    return;
+                }
+
                 if(this.stepPacks.length)
                 {
                     this.currentPack = this.stepPacks[0];
@@ -61,6 +70,16 @@ module GameBase
                     this.add(this.currentPack);
                     
                     this.currentPack.show();
+
+
+                    var graphMask = this.game.add.graphics(0, 0);
+
+                    graphMask.beginFill(0x000000);
+                    graphMask.drawRoundedRect(this.x -150, this.y -150, this.currentPack.width + 300, 350, 10);
+                    graphMask.endFill();
+
+                    this.currentPack.mask = graphMask;
+                    
 
                     return true;
                 }
