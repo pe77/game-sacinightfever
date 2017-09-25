@@ -10,6 +10,7 @@ module GameBase
 		controller:Step.Controller;
 		likometer:Bar.Likometer;
 		time:Bar.Time;
+		score:Score.Score;
 		timee:number = 30; // ms
 
 		init(...args:any[])
@@ -62,8 +63,28 @@ module GameBase
 			this.controller.playNext();
 
 			// sempre que o pack acabar...
-			this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, (hit)=>{
-				console.log('PACK OVER ENVET');
+			this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, (e, hit, originalPackSize)=>{
+				console.log('PACK OVER ENVET', hit, originalPackSize, this.time.value);
+
+				// se fechou, calcula a grana
+				if(hit)
+				{
+					var scoreVal:number = this.time.value * originalPackSize;
+					scoreVal = Math.floor(scoreVal * 0.1);
+					scoreVal = scoreVal < 5 ? 5 : scoreVal;
+					
+					this.score.addValue(scoreVal);
+					
+				}else{
+					// quanto mais facil, mais dinheiro perde
+
+					var scoreVal:number = this.time.value / originalPackSize;
+					scoreVal = Math.floor(scoreVal * 0.1);
+					scoreVal = scoreVal < 10 ? 10 : scoreVal;
+					
+					this.score.removeValue(scoreVal);
+					
+				}
 
 				// para o tempo
 				this.time.stopCount();
@@ -121,6 +142,12 @@ module GameBase
 				// reseta os steps
 				// this.resetPacks();
 			}, this);
+
+			this.score = new Score.Score(this.game);
+			this.score.create();
+
+			this.score.x += 20;
+			this.score.y += 20;
 		}
 
 		resetPacks()
@@ -158,7 +185,8 @@ module GameBase
 			var stepPack:Step.StepPack = new Step.StepPack(this.game);
 
 			// add uns passos
-			for(var i = 0; i < 7; i++)
+			var totalSteps:number = this.game.rnd.integerInRange(3, 10);
+			for(var i = 0; i < totalSteps; i++)
 				stepPack.addStep(new Step.Step(this.game, Step.Step.getRandomDirection()));
 			//
 
@@ -167,7 +195,7 @@ module GameBase
 		
 		render()
         {
-            this.game.debug.text('(Main Screen) ', 35, 35);
+            // this.game.debug.text('(Main Screen) ', 35, 35);
         }
 
 		// calls when leaving state

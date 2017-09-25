@@ -588,6 +588,8 @@ var GameBase;
             // time
             this.load.image('time-bar', 'assets/states/main/images/time/bar.png');
             this.load.image('time-clock', 'assets/states/main/images/time/clock.png');
+            // score
+            this.load.image('score-money', 'assets/states/main/images/score/money.png');
             // generic
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');
@@ -815,6 +817,57 @@ var GameBase;
 })(GameBase || (GameBase = {}));
 var GameBase;
 (function (GameBase) {
+    var Score;
+    (function (Score_1) {
+        var Score = (function (_super) {
+            __extends(Score, _super);
+            function Score(game) {
+                var _this = _super.call(this, game) || this;
+                _this.value = 0;
+                return _this;
+            }
+            Score.prototype.create = function () {
+                this.text = this.game.add.text(0, 0, "", // text
+                {
+                    font: "32px California",
+                    fill: "#fff"
+                } // font style
+                );
+                this.text.padding.x = 10;
+                this.money = this.game.add.sprite(0, 0, 'score-money');
+                this.text.text = "x " + this.value;
+                // this.text.textBounds.
+                // this.text.width += 100;
+                this.text.x = this.money.width;
+                this.text.y = this.money.height / 2 - 10;
+                this.text.setShadow(2, 2, '#53514b', 1);
+                this.add(this.money);
+                this.add(this.text);
+            };
+            Score.prototype.addValue = function (value) {
+                this.value += value;
+                this.text.text = 'x ' + this.value;
+            };
+            Score.prototype.setValue = function (value) {
+                this.value = value < 0 ? 0 : value;
+                this.text.text = 'x ' + this.value;
+            };
+            Score.prototype.removeValue = function (value) {
+                this.value -= value;
+                this.value = this.value < 0 ? 0 : this.value;
+                this.text.text = 'x ' + this.value;
+            };
+            Score.prototype.reset = function () {
+                this.value = 0;
+                this.text.text = 'x ' + this.value;
+            };
+            return Score;
+        }(Pk.PkElement));
+        Score_1.Score = Score;
+    })(Score = GameBase.Score || (GameBase.Score = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
     var Step;
     (function (Step) {
         var Base = (function (_super) {
@@ -872,13 +925,6 @@ var GameBase;
             };
             // toca o proximo pack
             Controller.prototype.playNext = function () {
-                // se houver algum, remove as notas
-                if (this.currentPack && this.currentPack.steps.length) {
-                    console.log('destroy');
-                    // this.currentPack.visible = false;
-                    this.currentPack.killStep(false);
-                    return;
-                }
                 if (this.stepPacks.length) {
                     this.currentPack = this.stepPacks[0];
                     this.currentPack.create();
@@ -926,6 +972,7 @@ var GameBase;
                     setTimeout(function () {
                         lastPack.destroy();
                     }, 1500);
+                    var originalPackSize = this.currentPack.originalPackSize;
                     // se ainda houver packs, seta o current para o proximo
                     if (this.stepPacks.length) {
                         console.log('atualiza current para o proximo');
@@ -936,7 +983,7 @@ var GameBase;
                         this.currentPack = null; // se não houver mais packs
                     //    
                     // se errou, dispara o evento de fim de pack
-                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit);
+                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit, originalPackSize);
                 }
             };
             return Controller;
@@ -1073,6 +1120,7 @@ var GameBase;
                 _this.padding = 10;
                 _this.hasPlay = false;
                 _this.created = false;
+                _this.originalPackSize = 0;
                 _this.visible = false;
                 return _this;
             }
@@ -1081,6 +1129,7 @@ var GameBase;
                     this.currentStep = step;
                 //
                 this.steps.push(step);
+                this.originalPackSize = this.steps.length;
                 this.add(step);
             };
             StepPack.prototype.create = function () {
@@ -1196,8 +1245,22 @@ var GameBase;
             // toca o primeiro pack
             this.controller.playNext();
             // sempre que o pack acabar...
-            this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (hit) {
-                console.log('PACK OVER ENVET');
+            this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (e, hit, originalPackSize) {
+                console.log('PACK OVER ENVET', hit, originalPackSize, _this.time.value);
+                // se fechou, calcula a grana
+                if (hit) {
+                    var scoreVal = _this.time.value * originalPackSize;
+                    scoreVal = Math.floor(scoreVal * 0.1);
+                    scoreVal = scoreVal < 5 ? 5 : scoreVal;
+                    _this.score.addValue(scoreVal);
+                }
+                else {
+                    // quanto mais facil, mais dinheiro perde
+                    var scoreVal = _this.time.value / originalPackSize;
+                    scoreVal = Math.floor(scoreVal * 0.1);
+                    scoreVal = scoreVal < 10 ? 10 : scoreVal;
+                    _this.score.removeValue(scoreVal);
+                }
                 // para o tempo
                 _this.time.stopCount();
                 // espera um pouquinho
@@ -1235,6 +1298,10 @@ var GameBase;
                 // reseta os steps
                 // this.resetPacks();
             }, this);
+            this.score = new GameBase.Score.Score(this.game);
+            this.score.create();
+            this.score.x += 20;
+            this.score.y += 20;
         };
         Main.prototype.resetPacks = function () {
             console.log();
@@ -1260,13 +1327,14 @@ var GameBase;
             // cria um pack
             var stepPack = new GameBase.Step.StepPack(this.game);
             // add uns passos
-            for (var i = 0; i < 7; i++)
+            var totalSteps = this.game.rnd.integerInRange(3, 10);
+            for (var i = 0; i < totalSteps; i++)
                 stepPack.addStep(new GameBase.Step.Step(this.game, GameBase.Step.Step.getRandomDirection()));
             //
             return stepPack;
         };
         Main.prototype.render = function () {
-            this.game.debug.text('(Main Screen) ', 35, 35);
+            // this.game.debug.text('(Main Screen) ', 35, 35);
         };
         // calls when leaving state
         Main.prototype.shutdown = function () {

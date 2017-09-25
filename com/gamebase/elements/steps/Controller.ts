@@ -53,15 +53,6 @@ module GameBase
             // toca o proximo pack
             playNext():boolean
             {
-                // se houver algum, remove as notas
-                if(this.currentPack && this.currentPack.steps.length)
-                {
-                    console.log('destroy')
-                    // this.currentPack.visible = false;
-                    this.currentPack.killStep(false);
-                    return;
-                }
-
                 if(this.stepPacks.length)
                 {
                     this.currentPack = this.stepPacks[0];
@@ -132,7 +123,9 @@ module GameBase
                     // espera a ultima nota animar
                     setTimeout(()=>{
                         lastPack.destroy();
-                    }, 1500)
+                    }, 1500);
+
+                    var originalPackSize = this.currentPack.originalPackSize;
 
                     // se ainda houver packs, seta o current para o proximo
                     if(this.stepPacks.length)
@@ -146,7 +139,7 @@ module GameBase
                     //    
                     
                     // se errou, dispara o evento de fim de pack
-                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit);
+                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit, originalPackSize);
                 }
 
                 

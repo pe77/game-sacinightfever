@@ -75,6 +75,9 @@ module GameBase {
             this.load.image('time-bar', 'assets/states/main/images/time/bar.png');
             this.load.image('time-clock', 'assets/states/main/images/time/clock.png');
 
+            // score
+            this.load.image('score-money', 'assets/states/main/images/score/money.png');
+
             // generic
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');
