@@ -452,7 +452,8 @@ var GameBase;
             _this.preLoaderState = GameBase.Preloader;
             // loading all* game assets
             _this.loaderState = GameBase.Loader;
-            _this.canvasSize = ["100%", 720];
+            // this.canvasSize = ["100%", 720];
+            _this.canvasSize = [450, 720];
             _this.initialState = 'Main';
             return _this;
         }
@@ -630,27 +631,33 @@ var GameBase;
                 }, this);
                 this.likometer.event.add(GameBase.Bar.E.LikometerEvent.OnOver, function () {
                     _this.gameOver = true;
-                    alert('PERDEUUU... tente novamente =D [Dilmas: ' + _this.score.value + ' Level:' + _this.level + ']');
-                    location.reload();
+                    alert("PERDEUUU...\nScore: [Dilmas: " + _this.score.value + ', Level:' + _this.level + "]\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ");
                     // para o tempo
                     _this.timeBar.stopCount();
                 }, this);
                 // sempre que o pack acabar...
                 this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (e, hit, originalPackSize) {
-                    _this.endPack(hit, originalPackSize);
+                    console.log('END PACK');
+                    if (!_this.gameOver)
+                        _this.endPack(hit, originalPackSize);
+                    //
                 }, this);
                 // sempre que o pack iniciar 
                 this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (e, hit, originalPackSize) {
                     var time = 116 - (_this.level * 15);
                     time = time < 50 ? 50 : time;
-                    _this.timeBar.startCount(time);
+                    if (!_this.gameOver)
+                        _this.timeBar.startCount(time);
+                    //
                 }, this);
                 // sempre que acabar os packs do controller
                 this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndAllPacks, function (e, hit, originalPackSize) {
-                    console.log('TERMINOU TODOS OS PACK');
+                    console.log('TERMINOU TODOS OS PACK', hit, originalPackSize);
                     setTimeout(function () {
-                        _this.playNextLevel();
-                    }, 500);
+                        if (!_this.gameOver)
+                            _this.playNextLevel(hit, originalPackSize);
+                        //
+                    }, 800);
                 }, this);
                 this.updatePosition();
             };
@@ -666,7 +673,6 @@ var GameBase;
                 // a cada level, vai diminuindo os packs
                 var totalPacks = 10 - (this.level * 2);
                 totalPacks = totalPacks < 1 ? 1 : totalPacks;
-                console.log('totalPacks:', totalPacks);
                 // quanto maior o level, maior a quantidade de notas
                 var totalStepInterval = [2 + this.level, 4 + this.level];
                 // gera uma serie de packs
@@ -674,10 +680,11 @@ var GameBase;
                     this.controller.addStepPack(GameBase.Step.StepPack.generateStepPack(this.game, this.game.rnd.integerInRange(totalStepInterval[0], totalStepInterval[1])));
                 //
             };
-            Presentation.prototype.playNextLevel = function () {
-                // almenta a dificuldade
-                this.level++;
-                console.log('START LEVEL:', this.level);
+            Presentation.prototype.playNextLevel = function (hit, originalPackSize) {
+                // almenta a dificuldade, se acertou
+                if (hit)
+                    this.level++;
+                //
                 // add umas notinhas
                 this.prepare();
                 // toca

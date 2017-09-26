@@ -27,7 +27,8 @@ module GameBase {
             // loading all* game assets
             this.loaderState = Loader;
 
-            this.canvasSize = ["100%", 720];
+            // this.canvasSize = ["100%", 720];
+            this.canvasSize = [450, 720];
 
 
             this.initialState = 'Main';
