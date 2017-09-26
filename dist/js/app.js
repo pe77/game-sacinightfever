@@ -604,6 +604,116 @@ var GameBase;
 })(GameBase || (GameBase = {}));
 var GameBase;
 (function (GameBase) {
+    var Presentation;
+    (function (Presentation_1) {
+        var Presentation = (function (_super) {
+            __extends(Presentation, _super);
+            function Presentation(game) {
+                var _this = _super.call(this, game) || this;
+                _this.timee = 50; // ms
+                _this.level = 1; // dificuldade
+                return _this;
+            }
+            Presentation.prototype.create = function () {
+                var _this = this;
+                // cria as coisas
+                this.controller.create();
+                this.audience.create();
+                this.likometer.create();
+                this.timeBar.create();
+                this.score.create();
+                // eventos
+                this.timeBar.event.add(GameBase.Bar.E.TimeEvent.OnEndCount, function () {
+                    _this.endTimeBar();
+                }, this);
+                this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (e, hit, originalPackSize) {
+                    // sempre que o pack acabar...
+                    _this.endPack(hit, originalPackSize);
+                }, this);
+                this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndAllPacks, function (e, hit, originalPackSize) {
+                    console.log('TERMINOU TODOS OS PACKS');
+                }, this);
+                this.updatePosition();
+            };
+            Presentation.prototype.start = function (level) {
+                // reseta / para o tempo
+                this.timeBar.stopCount();
+                var totalPacks = 5;
+                var totalStepInterval = [3, 5];
+                // gera uma serie de packs
+                for (var i = 0; i < totalPacks; i++)
+                    this.controller.addStepPack(GameBase.Step.StepPack.generateStepPack(this.game, this.game.rnd.integerInRange(totalStepInterval[0], totalStepInterval[1])));
+                //
+                // inici a colocar
+                this.controller.playNext();
+            };
+            Presentation.prototype.playNextLevel = function () {
+            };
+            Presentation.prototype.endTimeBar = function () {
+                console.log('terminou contato');
+                // se tiver alguma nota, erra remove contagem
+                this.likometer.removeValue(25);
+                // força o erro
+                this.controller.killStep(false);
+            };
+            Presentation.prototype.endPack = function (hit, originalPackSize) {
+                var _this = this;
+                // se fechou, calcula a grana
+                if (hit) {
+                    var scoreVal = this.timeBar.value * originalPackSize;
+                    scoreVal = Math.floor(scoreVal * 0.1);
+                    scoreVal = scoreVal < 5 ? 5 : scoreVal;
+                    this.score.addValue(scoreVal);
+                }
+                else {
+                    // quanto mais facil, mais dinheiro perde
+                    var scoreVal = this.timeBar.value / originalPackSize;
+                    scoreVal = Math.floor(scoreVal * 0.1);
+                    scoreVal = scoreVal < 10 ? 10 : scoreVal;
+                    this.score.removeValue(scoreVal);
+                }
+                // para o tempo
+                this.timeBar.stopCount();
+                // espera um pouquinho
+                setTimeout(function () {
+                    // this.resetPacks();
+                    _this.controller.playNext();
+                }, 500);
+            };
+            Presentation.prototype.pressStep = function (direction) {
+                // se não tem stepPack, ignora
+                if (!this.controller.currentPack) {
+                    console.log('-- IGNORA CLICK');
+                    return;
+                }
+                // se apertou a direção certa
+                if (this.controller.playDirection(direction)) {
+                    this.likometer.addValue(3);
+                    this.controller.killStep(true);
+                }
+                else {
+                    this.likometer.removeValue(30);
+                    this.controller.killStep(false);
+                }
+            };
+            Presentation.prototype.updatePosition = function () {
+                // posiciona as coisas
+                this.controller.x = this.game.world.centerX - this.controller.width / 2;
+                this.controller.y = 100;
+                this.likometer.y += 80;
+                this.likometer.x = this.game.world.width - this.likometer.backSprite.width - 20;
+                this.timeBar.x = this.controller.x + this.controller.width;
+                this.timeBar.y = this.controller.y + 27;
+                this.score.x += 20;
+                this.score.y += 20;
+            };
+            return Presentation;
+        }(Pk.PkElement));
+        Presentation_1.Presentation = Presentation;
+    })(Presentation = GameBase.Presentation || (GameBase.Presentation = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
     var Audience;
     (function (Audience_1) {
         var Audience = (function (_super) {
@@ -965,7 +1075,6 @@ var GameBase;
                 this.currentPack.killStep(hit);
                 // se esse pack não tiver mais steps OU errou
                 if (!this.currentPack.steps.length || !hit) {
-                    console.log('remove pack');
                     var lastPack = this.stepPacks.shift();
                     // this.currentPack.destroy();
                     // espera a ultima nota animar
@@ -975,15 +1084,18 @@ var GameBase;
                     var originalPackSize = this.currentPack.originalPackSize;
                     // se ainda houver packs, seta o current para o proximo
                     if (this.stepPacks.length) {
-                        console.log('atualiza current para o proximo');
                         this.currentPack = this.stepPacks[0];
                         this.stepPacks[0].show();
                     }
                     else
-                        this.currentPack = null; // se não houver mais packs
+                        this.currentPack = null;
                     //    
                     // se errou, dispara o evento de fim de pack
                     this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit, originalPackSize);
+                    // se acabou o pack, dispara o evento de fim de pack
+                    if (!this.currentPack)
+                        this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndAllPacks, hit, originalPackSize);
+                    //
                 }
             };
             return Controller;
@@ -994,6 +1106,7 @@ var GameBase;
             var ControllerEvent;
             (function (ControllerEvent) {
                 ControllerEvent.OnEndPack = "OnControllerEventEndPack";
+                ControllerEvent.OnEndAllPacks = "OnControllerOnEndAllPacks";
             })(ControllerEvent = E.ControllerEvent || (E.ControllerEvent = {}));
         })(E = Step.E || (Step.E = {}));
     })(Step = GameBase.Step || (GameBase.Step = {}));
@@ -1166,6 +1279,18 @@ var GameBase;
                     i++;
                 });
             };
+            StepPack.generateStepPack = function (game, steps) {
+                if (steps === void 0) { steps = 5; }
+                // cria um pack
+                var stepPack = new GameBase.Step.StepPack(game);
+                // add uns passos
+                // var totalSteps:number = game.rnd.integerInRange(3, 10);
+                var totalSteps = steps;
+                for (var i = 0; i < totalSteps; i++)
+                    stepPack.addStep(new GameBase.Step.Step(game, GameBase.Step.Step.getRandomDirection()));
+                //
+                return stepPack;
+            };
             // remove o step do pack current
             StepPack.prototype.killStep = function (hit) {
                 // se já acabou as notas do pack
@@ -1202,7 +1327,7 @@ var GameBase;
         __extends(Main, _super);
         function Main() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.timee = 30; // ms
+            _this.timee = 50; // ms
             return _this;
         }
         Main.prototype.init = function () {
@@ -1225,117 +1350,47 @@ var GameBase;
             this.enterKey.onDown.add(function () {
                 // this.transition.change('Menu', 1111, 'text', {a:true, b:[1, 2]});  // return with some foo/bar args
             }, this);
-            this.controller = new GameBase.Step.Controller(this.game);
-            this.controller.addStepPack(this.generateStepPack());
-            this.controller.create();
-            this.controller.x = this.game.world.centerX - this.controller.width / 2;
-            this.controller.y = 100;
+            // cria a apresentação E add os componentes
+            this.presentation = new GameBase.Presentation.Presentation(this.game);
+            this.presentation.controller = new GameBase.Step.Controller(this.game);
+            this.presentation.audience = new GameBase.Audience.Audience(this.game);
+            this.presentation.likometer = new GameBase.Bar.Likometer(this.game, this.game.add.sprite(0, 0, 'likebar-back'), this.game.add.sprite(0, 0, 'likebar-bar'), this.game.add.sprite(0, 0, 'likebar-border'));
+            this.presentation.timeBar = new GameBase.Bar.Time(this.game);
+            this.presentation.score = new GameBase.Score.Score(this.game);
             this.game.input.keyboard.addKey(Phaser.Keyboard.DOWN).onDown.add(function () {
-                _this.pressStep(GameBase.Step.Direction.DOWN);
+                _this.presentation.pressStep(GameBase.Step.Direction.DOWN);
             }, this);
             this.game.input.keyboard.addKey(Phaser.Keyboard.UP).onDown.add(function () {
-                _this.pressStep(GameBase.Step.Direction.TOP);
+                _this.presentation.pressStep(GameBase.Step.Direction.TOP);
             }, this);
             this.game.input.keyboard.addKey(Phaser.Keyboard.LEFT).onDown.add(function () {
-                _this.pressStep(GameBase.Step.Direction.LEFT);
+                _this.presentation.pressStep(GameBase.Step.Direction.LEFT);
             }, this);
             this.game.input.keyboard.addKey(Phaser.Keyboard.RIGHT).onDown.add(function () {
-                _this.pressStep(GameBase.Step.Direction.RIGHT);
+                _this.presentation.pressStep(GameBase.Step.Direction.RIGHT);
             }, this);
-            // toca o primeiro pack
-            this.controller.playNext();
-            // sempre que o pack acabar...
-            this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (e, hit, originalPackSize) {
-                console.log('PACK OVER ENVET', hit, originalPackSize, _this.time.value);
-                // se fechou, calcula a grana
-                if (hit) {
-                    var scoreVal = _this.time.value * originalPackSize;
-                    scoreVal = Math.floor(scoreVal * 0.1);
-                    scoreVal = scoreVal < 5 ? 5 : scoreVal;
-                    _this.score.addValue(scoreVal);
-                }
-                else {
-                    // quanto mais facil, mais dinheiro perde
-                    var scoreVal = _this.time.value / originalPackSize;
-                    scoreVal = Math.floor(scoreVal * 0.1);
-                    scoreVal = scoreVal < 10 ? 10 : scoreVal;
-                    _this.score.removeValue(scoreVal);
-                }
-                // para o tempo
-                _this.time.stopCount();
-                // espera um pouquinho
-                setTimeout(function () {
-                    _this.resetPacks();
-                }, 500);
-            }, this);
-            var audience = new GameBase.Audience.Audience(this.game);
-            audience.create();
-            this.likometer = new GameBase.Bar.Likometer(this.game, this.game.add.sprite(0, 0, 'likebar-back'), this.game.add.sprite(0, 0, 'likebar-bar'), this.game.add.sprite(0, 0, 'likebar-border'));
-            this.likometer.create();
-            this.likometer.setValue(80);
-            console.log('*--- ', this.likometer.value);
-            this.likometer.y += 80;
-            // likometer.x = this.game.world.width - likometer.width - 20;
-            this.likometer.x = this.game.world.width - this.likometer.backSprite.width - 20;
-            // likometer.x += 100;
-            // cria a barra de tempo e coloca ao lado do controller
-            this.time = new GameBase.Bar.Time(this.game);
-            this.time.create();
-            this.time.x = this.controller.x + this.controller.width;
-            this.time.y = this.controller.y + 27;
-            // this.time.setValue(80);
-            setTimeout(function () {
-                // this.time.setValue(80);
-            }, 2000);
-            // inicia contagem de tempo
-            this.time.startCount(this.timee); // ms
-            this.time.event.add(GameBase.Bar.E.TimeEvent.OnEndCount, function () {
-                console.log('terminou contato');
-                // se tiver alguma nota, erra remove contagem
-                _this.likometer.removeValue(40);
-                // força o erro
-                _this.controller.killStep(false);
-                // reseta os steps
-                // this.resetPacks();
-            }, this);
-            this.score = new GameBase.Score.Score(this.game);
-            this.score.create();
-            this.score.x += 20;
-            this.score.y += 20;
+            // bla
+            // this.likometer.setValue(80);
+            // this.time.startCount(this.timee); // ms
+            this.presentation.create();
+            this.presentation.start(1);
         };
-        Main.prototype.resetPacks = function () {
-            console.log();
+        /*
+        resetPacks()
+        {
             // add outro pack
             this.controller.addStepPack(this.generateStepPack());
-            // começa a contagem
-            this.time.startCount(this.timee);
-            // toca
-            this.controller.playNext();
-        };
-        Main.prototype.pressStep = function (direction) {
-            // se apertou a direção certa
-            if (this.controller.playDirection(direction)) {
-                this.likometer.addValue(3);
-                this.controller.killStep(true);
-            }
-            else {
-                this.likometer.removeValue(30);
-                this.controller.killStep(false);
-            }
-        };
-        Main.prototype.generateStepPack = function () {
-            // cria um pack
-            var stepPack = new GameBase.Step.StepPack(this.game);
-            // add uns passos
-            var totalSteps = this.game.rnd.integerInRange(3, 10);
-            for (var i = 0; i < totalSteps; i++)
-                stepPack.addStep(new GameBase.Step.Step(this.game, GameBase.Step.Step.getRandomDirection()));
-            //
-            return stepPack;
-        };
-        Main.prototype.render = function () {
-            // this.game.debug.text('(Main Screen) ', 35, 35);
-        };
+
+            // espera um pouquinho antes de começar o proximo pack
+            setTimeout(()=>{
+                // começa a contagem
+                this.time.startCount(this.timee);
+
+                // toca
+                this.controller.playNext();
+            }, 2000)
+        }
+        */
         // calls when leaving state
         Main.prototype.shutdown = function () {
         };

@@ -81,7 +81,21 @@ module GameBase
                 });
             }
 
+            static generateStepPack(game:Pk.PkGame, steps:number = 5):Step.StepPack
+            {
+                
+                // cria um pack
+                var stepPack:Step.StepPack = new GameBase.Step.StepPack(game);
 
+                // add uns passos
+                // var totalSteps:number = game.rnd.integerInRange(3, 10);
+                var totalSteps:number = steps;
+                for(var i = 0; i < totalSteps; i++)
+                    stepPack.addStep(new GameBase.Step.Step(game, GameBase.Step.Step.getRandomDirection()));
+                //
+
+                return stepPack;
+            }
 
 
             

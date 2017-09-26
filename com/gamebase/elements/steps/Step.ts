@@ -119,8 +119,6 @@ module GameBase
                     
                 }else{
 
-                    
-                    
                     // centraliza
                     this.bg.anchor.set(0.5, 0.5);
                     this.x += this.width  / 2;

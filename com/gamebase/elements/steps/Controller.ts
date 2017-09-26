@@ -113,10 +113,6 @@ module GameBase
                 // se esse pack não tiver mais steps OU errou
                 if(!this.currentPack.steps.length || !hit)
                 {
-                    console.log('remove pack')
-
-                    
-                    
                     var lastPack:Step.StepPack = this.stepPacks.shift();
                     // this.currentPack.destroy();
 
@@ -130,16 +126,19 @@ module GameBase
                     // se ainda houver packs, seta o current para o proximo
                     if(this.stepPacks.length)
                     {
-                        console.log('atualiza current para o proximo')
-
                         this.currentPack = this.stepPacks[0];
                         this.stepPacks[0].show();
                     }else
-                        this.currentPack = null; // se não houver mais packs
+                        this.currentPack = null;
                     //    
                     
                     // se errou, dispara o evento de fim de pack
                     this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit, originalPackSize);
+
+                    // se acabou o pack, dispara o evento de fim de pack
+                    if(!this.currentPack)
+                        this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndAllPacks, hit, originalPackSize);    
+                    //
                 }
 
                 
@@ -150,7 +149,8 @@ module GameBase
         {
             export module ControllerEvent
             {
-                export const OnEndPack:string 	= "OnControllerEventEndPack";
+                export const OnEndPack:string 	    = "OnControllerEventEndPack";
+                export const OnEndAllPacks:string 	= "OnControllerOnEndAllPacks";
             }
         }
         
