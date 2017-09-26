@@ -43,7 +43,6 @@ module GameBase
             {
                 this.interval = interval;
                 this.value = 100;
-                
 
                 // se houver alguma outra contagem, pausa
                 if(this.intervalId)

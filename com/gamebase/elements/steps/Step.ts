@@ -16,8 +16,6 @@ module GameBase
 
             create()
             {
-                // var bodySprite:Phaser.Sprite = Pk.PkUtils.createSquare(this.game, 50, 50);
-                console.log('CREATING STEP')
 
                 var spriteName = 'step-';
                 switch(this.direction)
@@ -120,7 +118,9 @@ module GameBase
                 }else{
 
                     // centraliza
-                    this.bg.anchor.set(0.5, 0.5);
+                    if(this.bg) // bug fix - as vezes vem undefined
+                        this.bg.anchor.set(0.5, 0.5);
+                    // 
                     this.x += this.width  / 2;
                     this.y += this.height / 2;
 

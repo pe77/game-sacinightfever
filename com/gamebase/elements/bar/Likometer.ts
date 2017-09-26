@@ -43,6 +43,12 @@ module GameBase
             removeValue(value:number)
             {
                 super.removeValue(value);
+
+                // se der zero, dispara o evento
+                if(this.value == 0)
+                    this.event.dispatch(GameBase.Bar.E.LikometerEvent.OnOver);
+                //
+
             }
 
             setValue(value:number)
@@ -51,5 +57,15 @@ module GameBase
             }
             
         }
+
+
+        export module E
+        {
+            export module LikometerEvent
+            {
+                export const OnOver:string = "LikometerEventOnOver";
+            }
+        }
+        
     }
 }

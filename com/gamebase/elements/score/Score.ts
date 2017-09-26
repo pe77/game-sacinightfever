@@ -55,6 +55,11 @@ module GameBase
                 this.value -= value;
                 this.value = this.value < 0 ? 0 : this.value;
                 this.text.text = 'x ' + this.value;
+
+                // se der zero, dispara o evento
+                if(this.value == 0)
+                    this.event.dispatch(GameBase.Score.E.ScoreEvent.OnOverScore);
+                //
             }
 
             reset()
@@ -63,5 +68,14 @@ module GameBase
                 this.text.text = 'x ' + this.value;
             }
         }
+
+        export module E
+        {
+            export module ScoreEvent
+            {
+                export const OnOverScore:string = "ScoreEventOnOverScore";
+            }
+        }
+        
     }
 }

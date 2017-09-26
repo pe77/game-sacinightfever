@@ -71,6 +71,7 @@ module GameBase
 
                     this.currentPack.mask = graphMask;
                     
+                    this.event.dispatch(GameBase.Step.E.ControllerEvent.StartNext);
 
                     return true;
                 }
@@ -150,6 +151,7 @@ module GameBase
             export module ControllerEvent
             {
                 export const OnEndPack:string 	    = "OnControllerEventEndPack";
+                export const StartNext:string 	    = "OnControllerStartNext";
                 export const OnEndAllPacks:string 	= "OnControllerOnEndAllPacks";
             }
         }

@@ -13,6 +13,8 @@ module GameBase
 
             level:number = 1; // dificuldade
 
+            gameOver:boolean = false;
+
             constructor(game:Pk.PkGame)
             {
                 super(game);
@@ -28,17 +30,46 @@ module GameBase
                 this.score.create();
 
                 // eventos
+
+                // sempre que termina a contagem de tempo
                 this.timeBar.event.add(Bar.E.TimeEvent.OnEndCount, ()=>{
                     this.endTimeBar();
                 }, this);
 
+                this.likometer.event.add(GameBase.Bar.E.LikometerEvent.OnOver, ()=>{
+
+                    this.gameOver = true;
+
+                    alert('PERDEUUU... tente novamente =D [Dilmas: '+this.score.value+' Level:'+this.level+']');
+
+                    location.reload();
+
+                    // para o tempo
+                    this.timeBar.stopCount();
+                }, this);
+
+
+                // sempre que o pack acabar...
                 this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, (e, hit, originalPackSize)=>{
-                    // sempre que o pack acabar...
                     this.endPack(hit, originalPackSize);
                 }, this);
 
+                // sempre que o pack iniciar 
+                this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, (e, hit, originalPackSize)=>{
+                    var time = 116 - (this.level * 15);
+                    time = time < 50 ? 50 : time;
+
+                    this.timeBar.startCount(time);
+                }, this);
+
+                // sempre que acabar os packs do controller
                 this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndAllPacks, (e, hit, originalPackSize)=>{
-                    console.log('TERMINOU TODOS OS PACKS')
+                    console.log('TERMINOU TODOS OS PACK')
+
+                    setTimeout(()=>{ // bug fix - se não colocar, da tela preta
+                        this.playNextLevel();
+                    }, 500);
+
                 }, this);
 
                 this.updatePosition();
@@ -49,27 +80,46 @@ module GameBase
                 // reseta / para o tempo
 				this.timeBar.stopCount();
 
-                var totalPacks:number = 5;
+                // add umas notinhas
+                this.prepare();
 
-                var totalStepInterval:Array<number> = [3, 5];
+                // começa a colocar os steps
+                this.controller.playNext();
+            }
+
+            prepare()
+            {
+                // a cada level, vai diminuindo os packs
+                var totalPacks:number = 10 - (this.level * 2);
+                totalPacks = totalPacks < 1 ? 1 : totalPacks;
+
+                console.log('totalPacks:', totalPacks);
+
+                // quanto maior o level, maior a quantidade de notas
+                var totalStepInterval:Array<number> = [2 + this.level, 4 + this.level];
 
                 // gera uma serie de packs
                 for(var i = 0; i < totalPacks; i++)
                     this.controller.addStepPack(Step.StepPack.generateStepPack(this.game, this.game.rnd.integerInRange(totalStepInterval[0], totalStepInterval[1])));
                 //
-
-                // inici a colocar
-                this.controller.playNext();
             }
 
             playNextLevel()
             {
-                
+                // almenta a dificuldade
+                this.level++;
+
+                console.log('START LEVEL:', this.level);
+
+                // add umas notinhas
+                this.prepare();
+
+                // toca
+                this.controller.playNext();
             }
 
             private endTimeBar()
             {
-                console.log('terminou contato')
                 // se tiver alguma nota, erra remove contagem
                 this.likometer.removeValue(25);
 
@@ -84,6 +134,10 @@ module GameBase
 				{
 					var scoreVal:number = this.timeBar.value * originalPackSize;
 					scoreVal = Math.floor(scoreVal * 0.1);
+
+                    // da um bonus por level
+                    scoreVal += 5 * this.level;
+
 					scoreVal = scoreVal < 5 ? 5 : scoreVal;
 					
 					this.score.addValue(scoreVal);
@@ -98,8 +152,8 @@ module GameBase
 					
 				}
 
-				// para o tempo
-				this.timeBar.stopCount();
+				// re-inicia o tempo
+                this.timeBar.startCount(100);
 
 				// espera um pouquinho
 				setTimeout(()=>{
@@ -112,7 +166,7 @@ module GameBase
             pressStep(direction:Step.Direction)
             {
                 // se não tem stepPack, ignora
-                if(!this.controller.currentPack)
+                if(!this.controller.currentPack || this.gameOver)
                 {
                     console.log('-- IGNORA CLICK')
                     return;

@@ -93,6 +93,11 @@ module GameBase
 			}, 2000)	
 		}
 		*/
+
+		render()
+        {
+             this.game.debug.text('LEVEL ' + this.presentation.level, this.game.world.centerX, 35);
+        }
 		
 		
 		// calls when leaving state

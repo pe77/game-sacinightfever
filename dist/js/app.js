@@ -612,6 +612,7 @@ var GameBase;
                 var _this = _super.call(this, game) || this;
                 _this.timee = 50; // ms
                 _this.level = 1; // dificuldade
+                _this.gameOver = false;
                 return _this;
             }
             Presentation.prototype.create = function () {
@@ -623,34 +624,66 @@ var GameBase;
                 this.timeBar.create();
                 this.score.create();
                 // eventos
+                // sempre que termina a contagem de tempo
                 this.timeBar.event.add(GameBase.Bar.E.TimeEvent.OnEndCount, function () {
                     _this.endTimeBar();
                 }, this);
+                this.likometer.event.add(GameBase.Bar.E.LikometerEvent.OnOver, function () {
+                    _this.gameOver = true;
+                    alert('PERDEUUU... tente novamente =D [Dilmas: ' + _this.score.value + ' Level:' + _this.level + ']');
+                    location.reload();
+                    // para o tempo
+                    _this.timeBar.stopCount();
+                }, this);
+                // sempre que o pack acabar...
                 this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (e, hit, originalPackSize) {
-                    // sempre que o pack acabar...
                     _this.endPack(hit, originalPackSize);
                 }, this);
+                // sempre que o pack iniciar 
+                this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (e, hit, originalPackSize) {
+                    var time = 116 - (_this.level * 15);
+                    time = time < 50 ? 50 : time;
+                    _this.timeBar.startCount(time);
+                }, this);
+                // sempre que acabar os packs do controller
                 this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndAllPacks, function (e, hit, originalPackSize) {
-                    console.log('TERMINOU TODOS OS PACKS');
+                    console.log('TERMINOU TODOS OS PACK');
+                    setTimeout(function () {
+                        _this.playNextLevel();
+                    }, 500);
                 }, this);
                 this.updatePosition();
             };
             Presentation.prototype.start = function (level) {
                 // reseta / para o tempo
                 this.timeBar.stopCount();
-                var totalPacks = 5;
-                var totalStepInterval = [3, 5];
+                // add umas notinhas
+                this.prepare();
+                // começa a colocar os steps
+                this.controller.playNext();
+            };
+            Presentation.prototype.prepare = function () {
+                // a cada level, vai diminuindo os packs
+                var totalPacks = 10 - (this.level * 2);
+                totalPacks = totalPacks < 1 ? 1 : totalPacks;
+                console.log('totalPacks:', totalPacks);
+                // quanto maior o level, maior a quantidade de notas
+                var totalStepInterval = [2 + this.level, 4 + this.level];
                 // gera uma serie de packs
                 for (var i = 0; i < totalPacks; i++)
                     this.controller.addStepPack(GameBase.Step.StepPack.generateStepPack(this.game, this.game.rnd.integerInRange(totalStepInterval[0], totalStepInterval[1])));
                 //
-                // inici a colocar
-                this.controller.playNext();
             };
             Presentation.prototype.playNextLevel = function () {
+                // almenta a dificuldade
+                this.level++;
+                console.log('START LEVEL:', this.level);
+                // add umas notinhas
+                this.prepare();
+                // toca
+                this.controller.playNext();
             };
             Presentation.prototype.endTimeBar = function () {
-                console.log('terminou contato');
                 // se tiver alguma nota, erra remove contagem
                 this.likometer.removeValue(25);
                 // força o erro
@@ -662,6 +695,8 @@ var GameBase;
                 if (hit) {
                     var scoreVal = this.timeBar.value * originalPackSize;
                     scoreVal = Math.floor(scoreVal * 0.1);
+                    // da um bonus por level
+                    scoreVal += 5 * this.level;
                     scoreVal = scoreVal < 5 ? 5 : scoreVal;
                     this.score.addValue(scoreVal);
                 }
@@ -672,8 +707,8 @@ var GameBase;
                     scoreVal = scoreVal < 10 ? 10 : scoreVal;
                     this.score.removeValue(scoreVal);
                 }
-                // para o tempo
-                this.timeBar.stopCount();
+                // re-inicia o tempo
+                this.timeBar.startCount(100);
                 // espera um pouquinho
                 setTimeout(function () {
                     // this.resetPacks();
@@ -682,7 +717,7 @@ var GameBase;
             };
             Presentation.prototype.pressStep = function (direction) {
                 // se não tem stepPack, ignora
-                if (!this.controller.currentPack) {
+                if (!this.controller.currentPack || this.gameOver) {
                     console.log('-- IGNORA CLICK');
                     return;
                 }
@@ -839,6 +874,10 @@ var GameBase;
             };
             Likometer.prototype.removeValue = function (value) {
                 _super.prototype.removeValue.call(this, value);
+                // se der zero, dispara o evento
+                if (this.value == 0)
+                    this.event.dispatch(GameBase.Bar.E.LikometerEvent.OnOver);
+                //
             };
             Likometer.prototype.setValue = function (value) {
                 _super.prototype.setValue.call(this, value);
@@ -846,6 +885,13 @@ var GameBase;
             return Likometer;
         }(Bar.Vertical));
         Bar.Likometer = Likometer;
+        var E;
+        (function (E) {
+            var LikometerEvent;
+            (function (LikometerEvent) {
+                LikometerEvent.OnOver = "LikometerEventOnOver";
+            })(LikometerEvent = E.LikometerEvent || (E.LikometerEvent = {}));
+        })(E = Bar.E || (Bar.E = {}));
     })(Bar = GameBase.Bar || (GameBase.Bar = {}));
 })(GameBase || (GameBase = {}));
 /// <reference path='Vertical.ts' />
@@ -966,6 +1012,10 @@ var GameBase;
                 this.value -= value;
                 this.value = this.value < 0 ? 0 : this.value;
                 this.text.text = 'x ' + this.value;
+                // se der zero, dispara o evento
+                if (this.value == 0)
+                    this.event.dispatch(GameBase.Score.E.ScoreEvent.OnOverScore);
+                //
             };
             Score.prototype.reset = function () {
                 this.value = 0;
@@ -974,6 +1024,13 @@ var GameBase;
             return Score;
         }(Pk.PkElement));
         Score_1.Score = Score;
+        var E;
+        (function (E) {
+            var ScoreEvent;
+            (function (ScoreEvent) {
+                ScoreEvent.OnOverScore = "ScoreEventOnOverScore";
+            })(ScoreEvent = E.ScoreEvent || (E.ScoreEvent = {}));
+        })(E = Score_1.E || (Score_1.E = {}));
     })(Score = GameBase.Score || (GameBase.Score = {}));
 })(GameBase || (GameBase = {}));
 var GameBase;
@@ -1045,6 +1102,7 @@ var GameBase;
                     graphMask.drawRoundedRect(this.x - 150, this.y - 150, this.currentPack.width + 300, 350, 10);
                     graphMask.endFill();
                     this.currentPack.mask = graphMask;
+                    this.event.dispatch(GameBase.Step.E.ControllerEvent.StartNext);
                     return true;
                 }
                 return false;
@@ -1106,6 +1164,7 @@ var GameBase;
             var ControllerEvent;
             (function (ControllerEvent) {
                 ControllerEvent.OnEndPack = "OnControllerEventEndPack";
+                ControllerEvent.StartNext = "OnControllerStartNext";
                 ControllerEvent.OnEndAllPacks = "OnControllerOnEndAllPacks";
             })(ControllerEvent = E.ControllerEvent || (E.ControllerEvent = {}));
         })(E = Step.E || (Step.E = {}));
@@ -1123,8 +1182,6 @@ var GameBase;
                 return _this;
             }
             Step.prototype.create = function () {
-                // var bodySprite:Phaser.Sprite = Pk.PkUtils.createSquare(this.game, 50, 50);
-                console.log('CREATING STEP');
                 var spriteName = 'step-';
                 switch (this.direction) {
                     case GameBase.Step.Direction.DOWN:
@@ -1195,7 +1252,9 @@ var GameBase;
                 }
                 else {
                     // centraliza
-                    this.bg.anchor.set(0.5, 0.5);
+                    if (this.bg)
+                        this.bg.anchor.set(0.5, 0.5);
+                    // 
                     this.x += this.width / 2;
                     this.y += this.height / 2;
                     var tween = this.addTween(this).to({
@@ -1391,6 +1450,9 @@ var GameBase;
             }, 2000)
         }
         */
+        Main.prototype.render = function () {
+            this.game.debug.text('LEVEL ' + this.presentation.level, this.game.world.centerX, 35);
+        };
         // calls when leaving state
         Main.prototype.shutdown = function () {
         };
