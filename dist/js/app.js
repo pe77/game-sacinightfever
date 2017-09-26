@@ -574,6 +574,22 @@ var GameBase;
             this.load.image('step-down', 'assets/states/main/images/step/step-down.png');
             this.load.image('step-left', 'assets/states/main/images/step/step-left.png');
             this.load.image('step-right', 'assets/states/main/images/step/step-right.png');
+            this.load.image('step-back', 'assets/states/main/images/step/step-back.png');
+            // audience
+            this.load.image('aud-middle', 'assets/states/main/images/audience/middle.png');
+            this.load.image('aud-left', 'assets/states/main/images/audience/left.png');
+            this.load.image('aud-right', 'assets/states/main/images/audience/right.png');
+            // likometter
+            this.load.image('likebar-back', 'assets/states/main/images/likometer/back.png');
+            this.load.image('likebar-border', 'assets/states/main/images/likometer/border.png');
+            this.load.image('likebar-bar', 'assets/states/main/images/likometer/bar.png');
+            this.load.image('likebar-smile', 'assets/states/main/images/likometer/happy.png');
+            this.load.image('likebar-sad', 'assets/states/main/images/likometer/sad.png');
+            // time
+            this.load.image('time-bar', 'assets/states/main/images/time/bar.png');
+            this.load.image('time-clock', 'assets/states/main/images/time/clock.png');
+            // score
+            this.load.image('score-money', 'assets/states/main/images/score/money.png');
             // generic
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');
@@ -588,6 +604,270 @@ var GameBase;
 })(GameBase || (GameBase = {}));
 var GameBase;
 (function (GameBase) {
+    var Audience;
+    (function (Audience_1) {
+        var Audience = (function (_super) {
+            __extends(Audience, _super);
+            function Audience(game) {
+                return _super.call(this, game) || this;
+            }
+            Audience.prototype.create = function () {
+                // add os sprites da lateral, nas laterais. ORA BOLAS...
+                this.leftSprite = this.game.add.sprite(0, 0, 'aud-left');
+                this.rightSprite = this.game.add.sprite(0, 0, 'aud-right');
+                this.leftSprite.x = 0;
+                this.leftSprite.y = this.game.world.height - this.leftSprite.height;
+                this.rightSprite.x = this.game.world.width - this.rightSprite.width;
+                this.rightSprite.y = this.game.world.height - this.rightSprite.height;
+                // a parte do meio
+                this.middleTileSprite = this.game.add.tileSprite(0, 0, this.game.world.width, 100, 'aud-middle');
+                this.middleTileSprite.y = this.game.world.height - this.middleTileSprite.height;
+                console.log('---- foi');
+                this.add(this.rightSprite);
+                this.add(this.leftSprite);
+                this.add(this.middleTileSprite);
+            };
+            return Audience;
+        }(Pk.PkElement));
+        Audience_1.Audience = Audience;
+    })(Audience = GameBase.Audience || (GameBase.Audience = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
+    var Bar;
+    (function (Bar) {
+        var Vertical = (function (_super) {
+            __extends(Vertical, _super);
+            function Vertical(game, backSprite, barSprite, borderSprite) {
+                var _this = _super.call(this, game) || this;
+                _this.value = 100;
+                _this.backSprite = backSprite;
+                _this.barSprite = barSprite;
+                _this.borderSprite = borderSprite;
+                return _this;
+            }
+            Vertical.prototype.create = function () {
+                // cria uma mascara do tamanho da barra
+                this.maskGraph = this.game.add.graphics(0, 0);
+                this.maskGraph.beginFill(0xffffff);
+                this.maskGraph.lineStyle(1, 0xffd900, 1);
+                console.log('this.borderSprite.width:', this.borderSprite.width);
+                console.log('this.borderSprite.height:', this.borderSprite.height);
+                this.maskGraph.drawRect(0, 0, this.borderSprite.width, this.borderSprite.height);
+                this.maskGraph.endFill();
+                // this.mask = this.maskGraph;
+                this.barSprite.mask = this.maskGraph;
+                // usa o tamanho da mascara como tamanho 100%
+                this.maxSize = this.borderSprite.height;
+                // this.barSprite.y += 100
+                this.add(this.backSprite);
+                this.add(this.barSprite);
+                this.add(this.borderSprite);
+                this.add(this.maskGraph);
+            };
+            Vertical.prototype.addValue = function (value) {
+                this.value += value;
+                this.value = this.value > 100 ? 100 : this.value;
+                this.processValue();
+            };
+            Vertical.prototype.removeValue = function (value) {
+                this.value -= value;
+                this.value = this.value < 0 ? 0 : this.value;
+                this.processValue();
+            };
+            Vertical.prototype.setValue = function (value) {
+                this.value = value;
+                this.value = this.value < 0 ? 0 : this.value;
+                this.value = this.value > 100 ? 100 : this.value;
+                this.processValue();
+            };
+            Vertical.prototype.getValue = function () {
+                return this.value;
+            };
+            Vertical.prototype.processValue = function (time) {
+                if (time === void 0) { time = 500; }
+                var x = this.value * 0.01;
+                var v = this.maxSize - (x * this.maxSize); // - this.maxSize;
+                // se houver alguma animação, pausa
+                if (this.tween)
+                    this.tween.stop(true);
+                //
+                this.tween = this.addTween(this.barSprite).to({
+                    y: v
+                }, time, Phaser.Easing.Back.Out, true);
+            };
+            return Vertical;
+        }(Pk.PkElement));
+        Bar.Vertical = Vertical;
+    })(Bar = GameBase.Bar || (GameBase.Bar = {}));
+})(GameBase || (GameBase = {}));
+/// <reference path='Vertical.ts' />
+var GameBase;
+(function (GameBase) {
+    var Bar;
+    (function (Bar) {
+        var Likometer = (function (_super) {
+            __extends(Likometer, _super);
+            function Likometer(game, backSprite, barSprite, borderSprite) {
+                return _super.call(this, game, backSprite, barSprite, borderSprite) || this;
+            }
+            Likometer.prototype.create = function () {
+                _super.prototype.create.call(this);
+                this.smile = this.game.add.sprite(0, 0, 'likebar-smile');
+                this.sad = this.game.add.sprite(0, 0, 'likebar-sad');
+                // coloca acime a abaixo da barra
+                var padding = 10;
+                this.smile.y -= this.smile.height + padding;
+                this.sad.y += this.borderSprite.height + padding;
+                this.smile.anchor.x = this.sad.anchor.x = 0.5;
+                this.sad.x = this.smile.x = this.borderSprite.width / 2;
+                this.add(this.smile);
+                this.add(this.sad);
+            };
+            Likometer.prototype.addValue = function (value) {
+                _super.prototype.addValue.call(this, value);
+            };
+            Likometer.prototype.removeValue = function (value) {
+                _super.prototype.removeValue.call(this, value);
+            };
+            Likometer.prototype.setValue = function (value) {
+                _super.prototype.setValue.call(this, value);
+            };
+            return Likometer;
+        }(Bar.Vertical));
+        Bar.Likometer = Likometer;
+    })(Bar = GameBase.Bar || (GameBase.Bar = {}));
+})(GameBase || (GameBase = {}));
+/// <reference path='Vertical.ts' />
+var GameBase;
+(function (GameBase) {
+    var Bar;
+    (function (Bar) {
+        var Time = (function (_super) {
+            __extends(Time, _super);
+            function Time(game) {
+                var _this = this;
+                var bar = game.add.sprite(0, 0, 'time-bar');
+                var back = Pk.PkUtils.createSquare(game, bar.width, bar.height);
+                var border = Pk.PkUtils.createSquare(game, bar.width, bar.height);
+                back.visible = border.visible = false;
+                _this = _super.call(this, game, back, bar, border) || this;
+                return _this;
+            }
+            Time.prototype.create = function () {
+                _super.prototype.create.call(this);
+                this.clock = this.game.add.sprite(0, 0, 'time-clock');
+                this.add(this.clock);
+                this.clock.anchor.x = 0.5;
+                this.clock.x += this.barSprite.width / 2;
+                this.clock.y -= this.clock.height;
+                // this.barSprite.mask = null;
+                // this.angle = 180;
+            };
+            Time.prototype.startCount = function (interval) {
+                var _this = this;
+                if (interval === void 0) { interval = 1000; }
+                this.interval = interval;
+                this.value = 100;
+                // se houver alguma outra contagem, pausa
+                if (this.intervalId)
+                    clearInterval(this.intervalId);
+                //
+                this.intervalId = setInterval(function () {
+                    _this.removeValue(1);
+                }, this.interval);
+            };
+            Time.prototype.stopCount = function () {
+                console.log('stopCount--');
+                if (this.intervalId)
+                    clearInterval(this.intervalId);
+                //
+                this.setValue(100);
+            };
+            Time.prototype.processValue = function (time) {
+                if (time === void 0) { time = 500; }
+                var x = this.value * 0.01;
+                var v = this.maxSize - (x * this.maxSize); // - this.maxSize;
+                v *= -1; // sobe invertico
+                // não precisa animar
+                // se houver alguma a  nimação, pausa
+                if (this.tween)
+                    this.tween.stop(true);
+                //
+                this.tween = this.addTween(this.barSprite).to({
+                    y: v
+                }, time, Phaser.Easing.Back.Out, true);
+                if (this.value == 0) {
+                    clearInterval(this.intervalId);
+                    this.event.dispatch(GameBase.Bar.E.TimeEvent.OnEndCount);
+                }
+                //
+            };
+            return Time;
+        }(Bar.Vertical));
+        Bar.Time = Time;
+        var E;
+        (function (E) {
+            var TimeEvent;
+            (function (TimeEvent) {
+                TimeEvent.OnEndCount = "TimeEventOnEndCount";
+            })(TimeEvent = E.TimeEvent || (E.TimeEvent = {}));
+        })(E = Bar.E || (Bar.E = {}));
+    })(Bar = GameBase.Bar || (GameBase.Bar = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
+    var Score;
+    (function (Score_1) {
+        var Score = (function (_super) {
+            __extends(Score, _super);
+            function Score(game) {
+                var _this = _super.call(this, game) || this;
+                _this.value = 0;
+                return _this;
+            }
+            Score.prototype.create = function () {
+                this.text = this.game.add.text(0, 0, "", // text
+                {
+                    font: "32px California",
+                    fill: "#fff"
+                } // font style
+                );
+                this.text.padding.x = 10;
+                this.money = this.game.add.sprite(0, 0, 'score-money');
+                this.text.text = "x " + this.value;
+                // this.text.textBounds.
+                // this.text.width += 100;
+                this.text.x = this.money.width;
+                this.text.y = this.money.height / 2 - 10;
+                this.text.setShadow(2, 2, '#53514b', 1);
+                this.add(this.money);
+                this.add(this.text);
+            };
+            Score.prototype.addValue = function (value) {
+                this.value += value;
+                this.text.text = 'x ' + this.value;
+            };
+            Score.prototype.setValue = function (value) {
+                this.value = value < 0 ? 0 : value;
+                this.text.text = 'x ' + this.value;
+            };
+            Score.prototype.removeValue = function (value) {
+                this.value -= value;
+                this.value = this.value < 0 ? 0 : this.value;
+                this.text.text = 'x ' + this.value;
+            };
+            Score.prototype.reset = function () {
+                this.value = 0;
+                this.text.text = 'x ' + this.value;
+            };
+            return Score;
+        }(Pk.PkElement));
+        Score_1.Score = Score;
+    })(Score = GameBase.Score || (GameBase.Score = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
     var Step;
     (function (Step) {
         var Base = (function (_super) {
@@ -597,7 +877,8 @@ var GameBase;
             }
             Base.prototype.create = function () {
                 console.log('creating BASE');
-                this.back = Pk.PkUtils.createSquare(this.game, 60, 60);
+                this.back = this.game.add.sprite(0, 0, 'step-back');
+                // this.back = Pk.PkUtils.createSquare(this.game, 60, 60);
                 this.back.alpha = 0.7;
                 this.add(this.back);
             };
@@ -649,6 +930,11 @@ var GameBase;
                     this.currentPack.create();
                     this.add(this.currentPack);
                     this.currentPack.show();
+                    var graphMask = this.game.add.graphics(0, 0);
+                    graphMask.beginFill(0x000000);
+                    graphMask.drawRoundedRect(this.x - 150, this.y - 150, this.currentPack.width + 300, 350, 10);
+                    graphMask.endFill();
+                    this.currentPack.mask = graphMask;
                     return true;
                 }
                 return false;
@@ -686,6 +972,7 @@ var GameBase;
                     setTimeout(function () {
                         lastPack.destroy();
                     }, 1500);
+                    var originalPackSize = this.currentPack.originalPackSize;
                     // se ainda houver packs, seta o current para o proximo
                     if (this.stepPacks.length) {
                         console.log('atualiza current para o proximo');
@@ -696,7 +983,7 @@ var GameBase;
                         this.currentPack = null; // se não houver mais packs
                     //    
                     // se errou, dispara o evento de fim de pack
-                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit);
+                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit, originalPackSize);
                 }
             };
             return Controller;
@@ -764,12 +1051,12 @@ var GameBase;
             };
             Step.prototype.kill = function (hit) {
                 var _this = this;
-                var time = 500;
+                var time = 300;
                 // se acertou anima pra direção 
                 if (hit) {
                     var x = 0;
                     var y = 0;
-                    var distance = 150;
+                    var distance = 100;
                     switch (this.direction) {
                         case GameBase.Step.Direction.TOP:
                             y -= distance;
@@ -833,6 +1120,7 @@ var GameBase;
                 _this.padding = 10;
                 _this.hasPlay = false;
                 _this.created = false;
+                _this.originalPackSize = 0;
                 _this.visible = false;
                 return _this;
             }
@@ -841,6 +1129,7 @@ var GameBase;
                     this.currentStep = step;
                 //
                 this.steps.push(step);
+                this.originalPackSize = this.steps.length;
                 this.add(step);
             };
             StepPack.prototype.create = function () {
@@ -912,7 +1201,9 @@ var GameBase;
     var Main = (function (_super) {
         __extends(Main, _super);
         function Main() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.timee = 30; // ms
+            return _this;
         }
         Main.prototype.init = function () {
             var args = [];
@@ -937,8 +1228,8 @@ var GameBase;
             this.controller = new GameBase.Step.Controller(this.game);
             this.controller.addStepPack(this.generateStepPack());
             this.controller.create();
-            this.controller.x = this.game.world.centerX;
-            this.controller.y = 150;
+            this.controller.x = this.game.world.centerX - this.controller.width / 2;
+            this.controller.y = 100;
             this.game.input.keyboard.addKey(Phaser.Keyboard.DOWN).onDown.add(function () {
                 _this.pressStep(GameBase.Step.Direction.DOWN);
             }, this);
@@ -954,23 +1245,81 @@ var GameBase;
             // toca o primeiro pack
             this.controller.playNext();
             // sempre que o pack acabar...
-            this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (hit) {
-                console.log('PACK OVER ENVET');
+            this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (e, hit, originalPackSize) {
+                console.log('PACK OVER ENVET', hit, originalPackSize, _this.time.value);
+                // se fechou, calcula a grana
+                if (hit) {
+                    var scoreVal = _this.time.value * originalPackSize;
+                    scoreVal = Math.floor(scoreVal * 0.1);
+                    scoreVal = scoreVal < 5 ? 5 : scoreVal;
+                    _this.score.addValue(scoreVal);
+                }
+                else {
+                    // quanto mais facil, mais dinheiro perde
+                    var scoreVal = _this.time.value / originalPackSize;
+                    scoreVal = Math.floor(scoreVal * 0.1);
+                    scoreVal = scoreVal < 10 ? 10 : scoreVal;
+                    _this.score.removeValue(scoreVal);
+                }
+                // para o tempo
+                _this.time.stopCount();
                 // espera um pouquinho
                 setTimeout(function () {
-                    // add outro pack
-                    _this.controller.addStepPack(_this.generateStepPack());
-                    // toca
-                    _this.controller.playNext();
+                    _this.resetPacks();
                 }, 500);
             }, this);
+            var audience = new GameBase.Audience.Audience(this.game);
+            audience.create();
+            this.likometer = new GameBase.Bar.Likometer(this.game, this.game.add.sprite(0, 0, 'likebar-back'), this.game.add.sprite(0, 0, 'likebar-bar'), this.game.add.sprite(0, 0, 'likebar-border'));
+            this.likometer.create();
+            this.likometer.setValue(80);
+            console.log('*--- ', this.likometer.value);
+            this.likometer.y += 80;
+            // likometer.x = this.game.world.width - likometer.width - 20;
+            this.likometer.x = this.game.world.width - this.likometer.backSprite.width - 20;
+            // likometer.x += 100;
+            // cria a barra de tempo e coloca ao lado do controller
+            this.time = new GameBase.Bar.Time(this.game);
+            this.time.create();
+            this.time.x = this.controller.x + this.controller.width;
+            this.time.y = this.controller.y + 27;
+            // this.time.setValue(80);
+            setTimeout(function () {
+                // this.time.setValue(80);
+            }, 2000);
+            // inicia contagem de tempo
+            this.time.startCount(this.timee); // ms
+            this.time.event.add(GameBase.Bar.E.TimeEvent.OnEndCount, function () {
+                console.log('terminou contato');
+                // se tiver alguma nota, erra remove contagem
+                _this.likometer.removeValue(40);
+                // força o erro
+                _this.controller.killStep(false);
+                // reseta os steps
+                // this.resetPacks();
+            }, this);
+            this.score = new GameBase.Score.Score(this.game);
+            this.score.create();
+            this.score.x += 20;
+            this.score.y += 20;
+        };
+        Main.prototype.resetPacks = function () {
+            console.log();
+            // add outro pack
+            this.controller.addStepPack(this.generateStepPack());
+            // começa a contagem
+            this.time.startCount(this.timee);
+            // toca
+            this.controller.playNext();
         };
         Main.prototype.pressStep = function (direction) {
             // se apertou a direção certa
             if (this.controller.playDirection(direction)) {
+                this.likometer.addValue(3);
                 this.controller.killStep(true);
             }
             else {
+                this.likometer.removeValue(30);
                 this.controller.killStep(false);
             }
         };
@@ -978,13 +1327,14 @@ var GameBase;
             // cria um pack
             var stepPack = new GameBase.Step.StepPack(this.game);
             // add uns passos
-            for (var i = 0; i < 7; i++)
+            var totalSteps = this.game.rnd.integerInRange(3, 10);
+            for (var i = 0; i < totalSteps; i++)
                 stepPack.addStep(new GameBase.Step.Step(this.game, GameBase.Step.Step.getRandomDirection()));
             //
             return stepPack;
         };
         Main.prototype.render = function () {
-            this.game.debug.text('(Main Screen) ', 35, 35);
+            // this.game.debug.text('(Main Screen) ', 35, 35);
         };
         // calls when leaving state
         Main.prototype.shutdown = function () {

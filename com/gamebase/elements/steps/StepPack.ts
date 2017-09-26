@@ -11,6 +11,7 @@ module GameBase
             created:boolean = false;
 
             currentStep:Step.Step;
+            originalPackSize:number = 0;
 
             constructor(game:Pk.PkGame)
             {
@@ -26,6 +27,8 @@ module GameBase
                 //
 
                 this.steps.push(step);
+
+                this.originalPackSize = this.steps.length;
 
                 this.add(step);
             }

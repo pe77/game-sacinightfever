@@ -62,6 +62,16 @@ module GameBase
                     
                     this.currentPack.show();
 
+
+                    var graphMask = this.game.add.graphics(0, 0);
+
+                    graphMask.beginFill(0x000000);
+                    graphMask.drawRoundedRect(this.x -150, this.y -150, this.currentPack.width + 300, 350, 10);
+                    graphMask.endFill();
+
+                    this.currentPack.mask = graphMask;
+                    
+
                     return true;
                 }
 
@@ -113,7 +123,9 @@ module GameBase
                     // espera a ultima nota animar
                     setTimeout(()=>{
                         lastPack.destroy();
-                    }, 1500)
+                    }, 1500);
+
+                    var originalPackSize = this.currentPack.originalPackSize;
 
                     // se ainda houver packs, seta o current para o proximo
                     if(this.stepPacks.length)
@@ -127,7 +139,7 @@ module GameBase
                     //    
                     
                     // se errou, dispara o evento de fim de pack
-                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit);
+                    this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit, originalPackSize);
                 }
 
                 

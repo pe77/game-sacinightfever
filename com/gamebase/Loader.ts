@@ -57,6 +57,26 @@ module GameBase {
             this.load.image('step-down', 'assets/states/main/images/step/step-down.png');
             this.load.image('step-left', 'assets/states/main/images/step/step-left.png');
             this.load.image('step-right', 'assets/states/main/images/step/step-right.png');
+            this.load.image('step-back', 'assets/states/main/images/step/step-back.png');
+
+            // audience
+            this.load.image('aud-middle', 'assets/states/main/images/audience/middle.png');
+            this.load.image('aud-left', 'assets/states/main/images/audience/left.png');
+            this.load.image('aud-right', 'assets/states/main/images/audience/right.png');
+
+            // likometter
+            this.load.image('likebar-back', 'assets/states/main/images/likometer/back.png');
+            this.load.image('likebar-border', 'assets/states/main/images/likometer/border.png');
+            this.load.image('likebar-bar', 'assets/states/main/images/likometer/bar.png');
+            this.load.image('likebar-smile', 'assets/states/main/images/likometer/happy.png');
+            this.load.image('likebar-sad', 'assets/states/main/images/likometer/sad.png');
+
+            // time
+            this.load.image('time-bar', 'assets/states/main/images/time/bar.png');
+            this.load.image('time-clock', 'assets/states/main/images/time/clock.png');
+
+            // score
+            this.load.image('score-money', 'assets/states/main/images/score/money.png');
 
             // generic
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
