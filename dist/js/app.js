@@ -200,6 +200,9 @@ var Pk;
             _this.event = new Pk.PkEvent('element-event-' + _this.id, _this);
             return _this;
         }
+        PkElement.prototype.getId = function () {
+            return this.id;
+        };
         PkElement.prototype.addTween = function (displayObject) {
             this.tweens.push(this.game.add.tween(displayObject));
             return this.tweens[this.tweens.length - 1];
@@ -591,6 +594,14 @@ var GameBase;
             this.load.image('time-clock', 'assets/states/main/images/time/clock.png');
             // score
             this.load.image('score-money', 'assets/states/main/images/score/money.png');
+            // saci moves
+            this.load.spritesheet('saci-move1', 'assets/default/images/saci/saci1.png', 184, 253, 2);
+            this.load.spritesheet('saci-move2', 'assets/default/images/saci/saci2.png', 184, 253, 2);
+            this.load.spritesheet('saci-move3', 'assets/default/images/saci/saci3.png', 184, 253, 2);
+            // musicas
+            this.load.audio('main-dance', 'assets/states/main/audio/music1.mp3');
+            // scenario
+            this.load.image('main-bg', 'assets/states/main/images/scenario/bg.png');
             // generic
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');
@@ -614,6 +625,7 @@ var GameBase;
                 _this.timee = 50; // ms
                 _this.level = 1; // dificuldade
                 _this.gameOver = false;
+                _this.firstNote = true;
                 return _this;
             }
             Presentation.prototype.create = function () {
@@ -631,7 +643,7 @@ var GameBase;
                 }, this);
                 this.likometer.event.add(GameBase.Bar.E.LikometerEvent.OnOver, function () {
                     _this.gameOver = true;
-                    alert("PERDEUUU...\nScore: [Dilmas: " + _this.score.value + ', Level:' + _this.level + "]\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ");
+                    alert("PERDEUUU...\nScore: [Temers: " + _this.score.value + ', Level:' + _this.level + "]\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ");
                     // para o tempo
                     _this.timeBar.stopCount();
                 }, this);
@@ -720,6 +732,7 @@ var GameBase;
                 setTimeout(function () {
                     // this.resetPacks();
                     _this.controller.playNext();
+                    _this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnChangeStepPack, _this.controller.currentPack);
                 }, 500);
             };
             Presentation.prototype.pressStep = function (direction) {
@@ -730,12 +743,17 @@ var GameBase;
                 }
                 // se apertou a direção certa
                 if (this.controller.playDirection(direction)) {
-                    this.likometer.addValue(3);
+                    this.likometer.addValue(1);
                     this.controller.killStep(true);
                 }
                 else {
                     this.likometer.removeValue(30);
                     this.controller.killStep(false);
+                }
+                // se for a primeira nota, toca eventos
+                if (this.firstNote) {
+                    this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnFirstNote);
+                    this.firstNote = false;
                 }
             };
             Presentation.prototype.updatePosition = function () {
@@ -752,6 +770,14 @@ var GameBase;
             return Presentation;
         }(Pk.PkElement));
         Presentation_1.Presentation = Presentation;
+        var E;
+        (function (E) {
+            var PresentationEvent;
+            (function (PresentationEvent) {
+                PresentationEvent.OnFirstNote = "OnPresentationEventFirstNote";
+                PresentationEvent.OnChangeStepPack = "OnPresentationChangeStepPack";
+            })(PresentationEvent = E.PresentationEvent || (E.PresentationEvent = {}));
+        })(E = Presentation_1.E || (Presentation_1.E = {}));
     })(Presentation = GameBase.Presentation || (GameBase.Presentation = {}));
 })(GameBase || (GameBase = {}));
 var GameBase;
@@ -980,6 +1006,139 @@ var GameBase;
 })(GameBase || (GameBase = {}));
 var GameBase;
 (function (GameBase) {
+    var Saci;
+    (function (Saci) {
+        var Move = (function (_super) {
+            __extends(Move, _super);
+            function Move(game, spriteKey) {
+                var _this = _super.call(this, game) || this;
+                _this.fps = 4;
+                _this.loop = true;
+                _this.spriteKey = spriteKey;
+                return _this;
+            }
+            Move.prototype.create = function () {
+                this.spriteBase = this.game.add.sprite(0, 0, this.spriteKey);
+                this.animation = this.spriteBase.animations.add('dance');
+                this.add(this.spriteBase);
+            };
+            Move.prototype.play = function () {
+                this.spriteBase.visible = true;
+                this.animation.play(this.fps, this.loop);
+            };
+            Move.prototype.stop = function (hide) {
+                if (hide === void 0) { hide = true; }
+                this.spriteBase.visible = !hide;
+                this.animation.stop();
+            };
+            return Move;
+        }(Pk.PkElement));
+        Saci.Move = Move;
+    })(Saci = GameBase.Saci || (GameBase.Saci = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
+    var Saci;
+    (function (Saci_1) {
+        var Saci = (function (_super) {
+            __extends(Saci, _super);
+            function Saci(game) {
+                var _this = _super.call(this, game) || this;
+                _this.moves = [];
+                return _this;
+            }
+            Saci.prototype.create = function () {
+                var _this = this;
+                this.moves.forEach(function (move) {
+                    move.create();
+                    move.stop();
+                    _this.add(move);
+                });
+            };
+            Saci.prototype.addMove = function (move) {
+                this.moves.push(move);
+            };
+            Saci.prototype.playNextMove = function () {
+                if (!this.moves.length)
+                    return;
+                //
+                for (var i in this.moves) {
+                    this.moves[i].stop();
+                    if (this.currentMove == this.moves[i]) {
+                        var index = parseInt(i);
+                        if ((index + 1) == this.moves.length) {
+                            this.currentMove = this.moves[0];
+                            break;
+                        }
+                        else {
+                            this.currentMove = this.moves[index + 1];
+                            break;
+                        }
+                    }
+                }
+                if (!this.currentMove)
+                    this.currentMove = this.moves[0];
+                //
+                this.currentMove.play();
+            };
+            return Saci;
+        }(Pk.PkElement));
+        Saci_1.Saci = Saci;
+    })(Saci = GameBase.Saci || (GameBase.Saci = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
+    var Saci;
+    (function (Saci) {
+        var Move1 = (function (_super) {
+            __extends(Move1, _super);
+            function Move1(game) {
+                return _super.call(this, game, 'saci-move1') || this;
+            }
+            Move1.prototype.create = function () {
+                _super.prototype.create.call(this);
+            };
+            return Move1;
+        }(Saci.Move));
+        Saci.Move1 = Move1;
+    })(Saci = GameBase.Saci || (GameBase.Saci = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
+    var Saci;
+    (function (Saci) {
+        var Move2 = (function (_super) {
+            __extends(Move2, _super);
+            function Move2(game) {
+                return _super.call(this, game, 'saci-move2') || this;
+            }
+            Move2.prototype.create = function () {
+                _super.prototype.create.call(this);
+            };
+            return Move2;
+        }(Saci.Move));
+        Saci.Move2 = Move2;
+    })(Saci = GameBase.Saci || (GameBase.Saci = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
+    var Saci;
+    (function (Saci) {
+        var Move3 = (function (_super) {
+            __extends(Move3, _super);
+            function Move3(game) {
+                return _super.call(this, game, 'saci-move3') || this;
+            }
+            Move3.prototype.create = function () {
+                _super.prototype.create.call(this);
+            };
+            return Move3;
+        }(Saci.Move));
+        Saci.Move3 = Move3;
+    })(Saci = GameBase.Saci || (GameBase.Saci = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
     var Score;
     (function (Score_1) {
         var Score = (function (_super) {
@@ -1088,6 +1247,10 @@ var GameBase;
                     this.add(this.stepPacks[i]);
                 }
                 */
+                this.gmask = this.game.add.graphics(0, 0);
+                this.gmask.beginFill(0x000000);
+                this.gmask.drawRoundedRect(this.x - 150, this.y - 150, 400, 600, 10);
+                this.gmask.endFill();
                 // step size
                 var stepSize = 50; //this.stepPacks.length ? this.stepPacks[0].steps[0].width : 50;
                 // ajusta o tamanho pra ficar um pouco maior que o step~
@@ -1104,11 +1267,8 @@ var GameBase;
                     this.currentPack.create();
                     this.add(this.currentPack);
                     this.currentPack.show();
-                    var graphMask = this.game.add.graphics(0, 0);
-                    graphMask.beginFill(0x000000);
-                    graphMask.drawRoundedRect(this.x - 150, this.y - 150, this.currentPack.width + 300, 350, 10);
-                    graphMask.endFill();
-                    this.currentPack.mask = graphMask;
+                    this.gmask.visible = true;
+                    this.currentPack.mask = this.gmask;
                     this.event.dispatch(GameBase.Step.E.ControllerEvent.StartNext);
                     return true;
                 }
@@ -1151,9 +1311,13 @@ var GameBase;
                     if (this.stepPacks.length) {
                         this.currentPack = this.stepPacks[0];
                         this.stepPacks[0].show();
+                        this.gmask.visible = true;
+                        this.currentPack.mask = this.gmask;
                     }
-                    else
+                    else {
+                        this.gmask.visible = false;
                         this.currentPack = null;
+                    }
                     //    
                     // se errou, dispara o evento de fim de pack
                     this.event.dispatch(GameBase.Step.E.ControllerEvent.OnEndPack, hit, originalPackSize);
@@ -1410,12 +1574,8 @@ var GameBase;
             this.game.stage.backgroundColor = "#938da0";
             // prevent stop update when focus out
             this.stage.disableVisibilityChange = true;
-            // get the keyboard key to come back to menu
-            this.enterKey = this.game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
-            // when press the key...
-            this.enterKey.onDown.add(function () {
-                // this.transition.change('Menu', 1111, 'text', {a:true, b:[1, 2]});  // return with some foo/bar args
-            }, this);
+            var scenarioBg = this.game.add.sprite(0, 0, 'main-bg');
+            scenarioBg.y -= 67;
             // cria a apresentação E add os componentes
             this.presentation = new GameBase.Presentation.Presentation(this.game);
             this.presentation.controller = new GameBase.Step.Controller(this.game);
@@ -1440,6 +1600,38 @@ var GameBase;
             // this.time.startCount(this.timee); // ms
             this.presentation.create();
             this.presentation.start(1);
+            var saci = new GameBase.Saci.Saci(this.game);
+            saci.addMove(new GameBase.Saci.Move1(this.game));
+            saci.addMove(new GameBase.Saci.Move2(this.game));
+            saci.addMove(new GameBase.Saci.Move3(this.game));
+            saci.addMove(new GameBase.Saci.Move2(this.game));
+            saci.create();
+            saci.x = this.game.world.centerX - 80;
+            saci.y += 300;
+            // coloca ele paradinho com a bunda kk
+            saci.moves[0].spriteBase.visible = true;
+            // quando tocar a primeira nota, começa a dançar
+            this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnFirstNote, function () {
+                console.log('FIRST NOTE');
+                saci.playNextMove();
+                /*
+                setInterval(()=>{
+                    saci.playNextMove();
+                }, 3000)
+                */
+            }, this);
+            this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnChangeStepPack, function () {
+                console.log('CHANGE PACK');
+                saci.playNextMove();
+            }, this);
+            // audio
+            this.musicBG = this.game.add.audio('main-dance');
+            this.musicBG.onDecoded.add(this.playSound, this); // load
+        };
+        Main.prototype.playSound = function () {
+            // play music
+            // this.musicBG.fadeIn(1000, true);
+            this.musicBG.play('', 0, 1, true);
         };
         /*
         resetPacks()

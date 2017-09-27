@@ -21,6 +21,11 @@ module Pk
   			this.event = new PkEvent('element-event-'+this.id, this);
 		}
 
+		getId()
+		{
+			return this.id;
+		}
+
 		addTween(displayObject:any)
 		{
 			this.tweens.push(this.game.add.tween(displayObject));

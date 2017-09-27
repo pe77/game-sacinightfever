@@ -78,6 +78,17 @@ module GameBase {
             // score
             this.load.image('score-money', 'assets/states/main/images/score/money.png');
 
+            // saci moves
+            this.load.spritesheet('saci-move1', 'assets/default/images/saci/saci1.png', 184, 253, 2);
+            this.load.spritesheet('saci-move2', 'assets/default/images/saci/saci2.png', 184, 253, 2);
+            this.load.spritesheet('saci-move3', 'assets/default/images/saci/saci3.png', 184, 253, 2);
+
+            // musicas
+            this.load.audio('main-dance', 'assets/states/main/audio/music1.mp3');
+
+            // scenario
+            this.load.image('main-bg', 'assets/states/main/images/scenario/bg.png');
+
             // generic
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');

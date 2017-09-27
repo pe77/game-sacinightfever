@@ -7,6 +7,7 @@ module GameBase
             base:Step.Base;
             stepPacks:Array<Step.StepPack> = [];
             currentPack:Step.StepPack;
+            gmask:Phaser.Graphics;
 
             event:Pk.PkEvent;
 
@@ -38,6 +39,12 @@ module GameBase
                 }
                 */
 
+                this.gmask = this.game.add.graphics(0, 0);
+
+                this.gmask.beginFill(0x000000);
+                this.gmask.drawRoundedRect(this.x -150, this.y -150, 400, 600, 10);
+                this.gmask.endFill();
+
                 // step size
                 var stepSize = 50; //this.stepPacks.length ? this.stepPacks[0].steps[0].width : 50;
 
@@ -62,14 +69,8 @@ module GameBase
                     
                     this.currentPack.show();
 
-
-                    var graphMask = this.game.add.graphics(0, 0);
-
-                    graphMask.beginFill(0x000000);
-                    graphMask.drawRoundedRect(this.x -150, this.y -150, this.currentPack.width + 300, 350, 10);
-                    graphMask.endFill();
-
-                    this.currentPack.mask = graphMask;
+                    this.gmask.visible = true;
+                    this.currentPack.mask = this.gmask;
                     
                     this.event.dispatch(GameBase.Step.E.ControllerEvent.StartNext);
 
@@ -129,8 +130,15 @@ module GameBase
                     {
                         this.currentPack = this.stepPacks[0];
                         this.stepPacks[0].show();
+
+                        this.gmask.visible = true;
+                        this.currentPack.mask = this.gmask;
                     }else
+                    {
+                        this.gmask.visible = false;
                         this.currentPack = null;
+                    }
+                        
                     //    
                     
                     // se errou, dispara o evento de fim de pack
