@@ -680,6 +680,7 @@ var GameBase;
                 this.prepare();
                 // começa a colocar os steps
                 this.controller.playNext();
+                this.audience.pulse();
             };
             Presentation.prototype.prepare = function () {
                 // a cada level, vai diminuindo os packs
@@ -804,6 +805,17 @@ var GameBase;
                 this.add(this.rightSprite);
                 this.add(this.leftSprite);
                 this.add(this.middleTileSprite);
+            };
+            Audience.prototype.pulse = function () {
+                // se houver alguma animação, pausa
+                if (this.tween)
+                    this.tween.stop(true);
+                //
+                this.tween = this.addTween(this).to({
+                    y: this.y + 10
+                }, 200, Phaser.Easing.Linear.None, true, 0, -1);
+                this.tween.yoyo(true);
+                console.log('AUDIENCE PULSE');
             };
             return Audience;
         }(Pk.PkElement));

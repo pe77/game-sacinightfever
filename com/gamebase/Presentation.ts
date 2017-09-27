@@ -95,6 +95,8 @@ module GameBase
 
                 // começa a colocar os steps
                 this.controller.playNext();
+
+                this.audience.pulse();
             }
 
             prepare()

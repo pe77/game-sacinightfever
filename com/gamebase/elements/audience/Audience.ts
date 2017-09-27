@@ -8,6 +8,8 @@ module GameBase
             rightSprite:Phaser.Sprite;
             middleTileSprite:Phaser.TileSprite;
 
+            tween:Phaser.Tween;
+
             constructor(game:Pk.PkGame)
             {
                 super(game);
@@ -33,6 +35,27 @@ module GameBase
                 this.add(this.rightSprite);
                 this.add(this.leftSprite);
                 this.add(this.middleTileSprite);
+            }
+
+            pulse()
+            {
+                // se houver alguma animação, pausa
+                if(this.tween)
+                    this.tween.stop(true);
+                //
+
+                this.tween = this.addTween(this).to(
+                    {
+                        y:this.y+10
+                    }, 
+                    200, 
+                    Phaser.Easing.Linear.None, 
+                    true, 0, -1
+                );
+
+                this.tween.yoyo(true);
+
+                console.log('AUDIENCE PULSE')
             }
         }
     }
