@@ -15,6 +15,8 @@ module GameBase
 
             gameOver:boolean = false;
 
+            firstNote:boolean = true;
+
             constructor(game:Pk.PkGame)
             {
                 super(game);
@@ -40,7 +42,7 @@ module GameBase
 
                     this.gameOver = true;
 
-                    alert("PERDEUUU...\nScore: [Dilmas: "+this.score.value+', Level:'+this.level+"]\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ");
+                    alert("PERDEUUU...\nScore: [Temers: "+this.score.value+', Level:'+this.level+"]\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ");
 
                     // para o tempo
                     this.timeBar.stopCount();
@@ -166,6 +168,8 @@ module GameBase
 				setTimeout(()=>{
 					// this.resetPacks();
                     this.controller.playNext();
+
+                    this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnChangeStepPack, this.controller.currentPack);
 				}, 500);
 
             }
@@ -182,7 +186,7 @@ module GameBase
                 // se apertou a direção certa
                 if(this.controller.playDirection(direction))
                 {
-                    this.likometer.addValue(3);
+                    this.likometer.addValue(1);
                     this.controller.killStep(true);
 
                 }else{
@@ -190,7 +194,13 @@ module GameBase
                     this.likometer.removeValue(30);
                     this.controller.killStep(false);
                 }
-                
+
+                // se for a primeira nota, toca eventos
+                if(this.firstNote)
+                {
+                    this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnFirstNote);
+                    this.firstNote = false;
+                }
             }
 
             updatePosition()
@@ -209,5 +219,15 @@ module GameBase
 			    this.score.y += 20;
             }
         }
+
+        export module E
+        {
+            export module PresentationEvent
+            {
+                export const OnFirstNote:string 	    = "OnPresentationEventFirstNote";
+                export const OnChangeStepPack:string 	= "OnPresentationChangeStepPack";
+            }
+        }
+
     }
 }

@@ -15,6 +15,9 @@ module GameBase
 
 		presentation:GameBase.Presentation.Presentation;
 
+
+		musicBG:Phaser.Sound;
+
 		init(...args:any[])
 		{
 			super.init(args); // if whant override init, you need this line!
@@ -30,13 +33,8 @@ module GameBase
 			// prevent stop update when focus out
             this.stage.disableVisibilityChange = true;
 
-    		// get the keyboard key to come back to menu
-            this.enterKey = this.game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
-
-			// when press the key...
-            this.enterKey.onDown.add(()=>{
-                // this.transition.change('Menu', 1111, 'text', {a:true, b:[1, 2]});  // return with some foo/bar args
-            }, this);
+			var scenarioBg:Phaser.Sprite = this.game.add.sprite(0, 0, 'main-bg');
+			scenarioBg.y -= 67;
 
 			// cria a apresentação E add os componentes
 			this.presentation = new Presentation.Presentation(this.game);
@@ -75,7 +73,48 @@ module GameBase
 			this.presentation.create();
 
 			this.presentation.start(1);
+
+			var saci:Saci.Saci = new Saci.Saci(this.game);
+			saci.addMove(new Saci.Move1(this.game));
+			saci.addMove(new Saci.Move2(this.game));
+			saci.addMove(new Saci.Move3(this.game));
+			saci.addMove(new Saci.Move2(this.game));
+			saci.create();
+
+			saci.x = this.game.world.centerX - 80;
+			saci.y += 300;
+
+			// coloca ele paradinho com a bunda kk
+			saci.moves[0].spriteBase.visible = true;
+
+			// quando tocar a primeira nota, começa a dançar
+			this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnFirstNote, ()=>{
+				console.log('FIRST NOTE')
+				
+				saci.playNextMove();
+				/*
+				setInterval(()=>{
+					saci.playNextMove();
+				}, 3000)
+				*/
+			}, this);
+
+			this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnChangeStepPack, ()=>{
+				console.log('CHANGE PACK')
+				saci.playNextMove();
+			}, this);
+
+			// audio
+            this.musicBG = this.game.add.audio('main-dance');
+            this.musicBG.onDecoded.add(this.playSound, this); // load
 		}
+
+		playSound()
+        {
+            // play music
+            // this.musicBG.fadeIn(1000, true);
+			this.musicBG.play('', 0, 1, true);
+        }
 
 		/*
 		resetPacks()
