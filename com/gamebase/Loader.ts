@@ -78,6 +78,9 @@ module GameBase {
             // score
             this.load.image('score-money', 'assets/states/main/images/score/money.png');
 
+            // score
+            this.load.image('level-bg', 'assets/states/main/images/level/bg.png');
+
             // saci moves
             this.load.spritesheet('saci-move1', 'assets/default/images/saci/saci1.png', 184, 253, 2);
             this.load.spritesheet('saci-move2', 'assets/default/images/saci/saci2.png', 184, 253, 2);

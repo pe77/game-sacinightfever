@@ -10,8 +10,7 @@ module GameBase
             score:Score.Score;
             timee:number = 50; // ms
             audience:Audience.Audience;
-
-            level:number = 1; // dificuldade
+            level:Level.Level;
 
             gameOver:boolean = false;
 
@@ -30,6 +29,7 @@ module GameBase
                 this.likometer.create();
                 this.timeBar.create();
                 this.score.create();
+                this.level.create();
 
                 // eventos
 
@@ -61,7 +61,7 @@ module GameBase
 
                 // sempre que o pack iniciar 
                 this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, (e, hit, originalPackSize)=>{
-                    var time = 116 - (this.level * 15);
+                    var time = 116 - (this.level.level * 15);
                     time = time < 50 ? 50 : time;
 
                     if(!this.gameOver)
@@ -102,11 +102,11 @@ module GameBase
             prepare()
             {
                 // a cada level, vai diminuindo os packs
-                var totalPacks:number = 10 - (this.level * 2);
+                var totalPacks:number = 10 - (this.level.level * 2);
                 totalPacks = totalPacks < 1 ? 1 : totalPacks;
 
                 // quanto maior o level, maior a quantidade de notas
-                var totalStepInterval:Array<number> = [2 + this.level, 4 + this.level];
+                var totalStepInterval:Array<number> = [2 + this.level.level, 4 + this.level.level];
 
                 // gera uma serie de packs
                 for(var i = 0; i < totalPacks; i++)
@@ -119,7 +119,7 @@ module GameBase
             {
                 // almenta a dificuldade, se acertou
                 if(hit)
-                    this.level++;
+                    this.level.setLevel(this.level.level+1);
                 //
 
                 // add umas notinhas
@@ -144,12 +144,13 @@ module GameBase
 				if(hit)
 				{
 					var scoreVal:number = this.timeBar.value * originalPackSize;
+                    scoreVal /= 8;
 					scoreVal = Math.floor(scoreVal * 0.1);
 
                     // da um bonus por level
-                    scoreVal += 5 * this.level;
+                    scoreVal += 2 * this.level.level;
 
-					scoreVal = scoreVal < 5 ? 5 : scoreVal;
+					scoreVal = scoreVal < 2 ? 2 : scoreVal;
 					
 					this.score.addValue(scoreVal);
 					
@@ -209,7 +210,7 @@ module GameBase
             {
                 // posiciona as coisas
                 this.controller.x = this.game.world.centerX - this.controller.width/2;
-			    this.controller.y = 100;
+			    this.controller.y = 30;
 
                 this.likometer.y += 80;
 			    this.likometer.x = this.game.world.width - this.likometer.backSprite.width - 20;
@@ -217,8 +218,10 @@ module GameBase
                 this.timeBar.x = this.controller.x + this.controller.width;
 			    this.timeBar.y = this.controller.y + 27;
 
-                this.score.x += 20;
+                // this.score.x += 20;
 			    this.score.y += 20;
+
+                this.level.y = this.score.y + this.score.height + 30;
             }
         }
 

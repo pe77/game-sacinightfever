@@ -594,6 +594,8 @@ var GameBase;
             this.load.image('time-clock', 'assets/states/main/images/time/clock.png');
             // score
             this.load.image('score-money', 'assets/states/main/images/score/money.png');
+            // score
+            this.load.image('level-bg', 'assets/states/main/images/level/bg.png');
             // saci moves
             this.load.spritesheet('saci-move1', 'assets/default/images/saci/saci1.png', 184, 253, 2);
             this.load.spritesheet('saci-move2', 'assets/default/images/saci/saci2.png', 184, 253, 2);
@@ -623,7 +625,6 @@ var GameBase;
             function Presentation(game) {
                 var _this = _super.call(this, game) || this;
                 _this.timee = 50; // ms
-                _this.level = 1; // dificuldade
                 _this.gameOver = false;
                 _this.firstNote = true;
                 return _this;
@@ -636,6 +637,7 @@ var GameBase;
                 this.likometer.create();
                 this.timeBar.create();
                 this.score.create();
+                this.level.create();
                 // eventos
                 // sempre que termina a contagem de tempo
                 this.timeBar.event.add(GameBase.Bar.E.TimeEvent.OnEndCount, function () {
@@ -656,7 +658,7 @@ var GameBase;
                 }, this);
                 // sempre que o pack iniciar 
                 this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (e, hit, originalPackSize) {
-                    var time = 116 - (_this.level * 15);
+                    var time = 116 - (_this.level.level * 15);
                     time = time < 50 ? 50 : time;
                     if (!_this.gameOver)
                         _this.timeBar.startCount(time);
@@ -684,10 +686,10 @@ var GameBase;
             };
             Presentation.prototype.prepare = function () {
                 // a cada level, vai diminuindo os packs
-                var totalPacks = 10 - (this.level * 2);
+                var totalPacks = 10 - (this.level.level * 2);
                 totalPacks = totalPacks < 1 ? 1 : totalPacks;
                 // quanto maior o level, maior a quantidade de notas
-                var totalStepInterval = [2 + this.level, 4 + this.level];
+                var totalStepInterval = [2 + this.level.level, 4 + this.level.level];
                 // gera uma serie de packs
                 for (var i = 0; i < totalPacks; i++)
                     this.controller.addStepPack(GameBase.Step.StepPack.generateStepPack(this.game, this.game.rnd.integerInRange(totalStepInterval[0], totalStepInterval[1])));
@@ -696,7 +698,7 @@ var GameBase;
             Presentation.prototype.playNextLevel = function (hit, originalPackSize) {
                 // almenta a dificuldade, se acertou
                 if (hit)
-                    this.level++;
+                    this.level.setLevel(this.level.level + 1);
                 //
                 // add umas notinhas
                 this.prepare();
@@ -714,10 +716,11 @@ var GameBase;
                 // se fechou, calcula a grana
                 if (hit) {
                     var scoreVal = this.timeBar.value * originalPackSize;
+                    scoreVal /= 8;
                     scoreVal = Math.floor(scoreVal * 0.1);
                     // da um bonus por level
-                    scoreVal += 5 * this.level;
-                    scoreVal = scoreVal < 5 ? 5 : scoreVal;
+                    scoreVal += 2 * this.level.level;
+                    scoreVal = scoreVal < 2 ? 2 : scoreVal;
                     this.score.addValue(scoreVal);
                 }
                 else {
@@ -760,13 +763,14 @@ var GameBase;
             Presentation.prototype.updatePosition = function () {
                 // posiciona as coisas
                 this.controller.x = this.game.world.centerX - this.controller.width / 2;
-                this.controller.y = 100;
+                this.controller.y = 30;
                 this.likometer.y += 80;
                 this.likometer.x = this.game.world.width - this.likometer.backSprite.width - 20;
                 this.timeBar.x = this.controller.x + this.controller.width;
                 this.timeBar.y = this.controller.y + 27;
-                this.score.x += 20;
+                // this.score.x += 20;
                 this.score.y += 20;
+                this.level.y = this.score.y + this.score.height + 30;
             };
             return Presentation;
         }(Pk.PkElement));
@@ -1018,6 +1022,65 @@ var GameBase;
 })(GameBase || (GameBase = {}));
 var GameBase;
 (function (GameBase) {
+    var Level;
+    (function (Level_1) {
+        var Level = (function (_super) {
+            __extends(Level, _super);
+            function Level(game) {
+                var _this = _super.call(this, game) || this;
+                _this.level = 1;
+                return _this;
+            }
+            Level.prototype.create = function () {
+                this.text = this.game.add.text(0, 0, "", // text
+                {
+                    font: "28px Love Story Rough",
+                    fill: "#fff"
+                } // font style
+                );
+                this.text.padding.x = 10;
+                this.bg = this.game.add.sprite(0, 0, 'level-bg');
+                this.bg.alpha = 0.7;
+                this.text.text = "";
+                // this.text.textBounds.
+                // this.text.width += 100;
+                // this.text.x = this.bg.width;
+                // this.text.y = this.bg.height / 2 - 10;
+                this.text.setShadow(2, 2, '#53514b', 1);
+                this.text.x += 20;
+                this.text.anchor.y = 0.5;
+                this.text.y = (this.bg.height / 2);
+                this.text.y += 5;
+                this.add(this.bg);
+                this.add(this.text);
+                this.addTween(this).from({
+                    x: this.x - this.width
+                }, 400, Phaser.Easing.Back.Out, true, 200);
+                this.processLevel();
+            };
+            Level.prototype.setLevel = function (level) {
+                this.level = level < 1 ? 1 : level;
+                this.processLevel();
+            };
+            Level.prototype.reset = function () {
+                this.level = 1;
+                this.processLevel();
+            };
+            Level.prototype.processLevel = function () {
+                this.text.text = 'Nivel  ' + this.level + ' / 12';
+                // faz uma animaçãozinha basica
+                var t = this.addTween(this).from({
+                    x: this.x - 20
+                }, 200, Phaser.Easing.Back.Out, true, 0, 0);
+                t.yoyo(true);
+            };
+            return Level;
+        }(Pk.PkElement));
+        Level_1.Level = Level;
+    })(Level = GameBase.Level || (GameBase.Level = {}));
+})(GameBase || (GameBase = {}));
+var GameBase;
+(function (GameBase) {
     var Saci;
     (function (Saci) {
         var Move = (function (_super) {
@@ -1163,20 +1226,30 @@ var GameBase;
             Score.prototype.create = function () {
                 this.text = this.game.add.text(0, 0, "", // text
                 {
-                    font: "32px California",
+                    font: "28px Love Story Rough",
                     fill: "#fff"
                 } // font style
                 );
                 this.text.padding.x = 10;
                 this.money = this.game.add.sprite(0, 0, 'score-money');
+                this.bg = this.game.add.sprite(0, 0, 'level-bg');
+                this.bg.alpha = 0.7;
+                this.money.x = 10;
                 this.text.text = "x " + this.value;
                 // this.text.textBounds.
                 // this.text.width += 100;
-                this.text.x = this.money.width;
+                this.text.x = this.money.x + this.money.width;
                 this.text.y = this.money.height / 2 - 10;
                 this.text.setShadow(2, 2, '#53514b', 1);
+                this.text.anchor.y = 0.5;
+                this.text.y = (this.bg.height / 2);
+                this.text.y += 5;
+                this.add(this.bg);
                 this.add(this.money);
                 this.add(this.text);
+                this.addTween(this).from({
+                    x: this.x - this.width
+                }, 400, Phaser.Easing.Back.Out, true);
             };
             Score.prototype.addValue = function (value) {
                 this.value += value;
@@ -1592,6 +1665,7 @@ var GameBase;
             this.presentation = new GameBase.Presentation.Presentation(this.game);
             this.presentation.controller = new GameBase.Step.Controller(this.game);
             this.presentation.audience = new GameBase.Audience.Audience(this.game);
+            this.presentation.level = new GameBase.Level.Level(this.game);
             this.presentation.likometer = new GameBase.Bar.Likometer(this.game, this.game.add.sprite(0, 0, 'likebar-back'), this.game.add.sprite(0, 0, 'likebar-bar'), this.game.add.sprite(0, 0, 'likebar-border'));
             this.presentation.timeBar = new GameBase.Bar.Time(this.game);
             this.presentation.score = new GameBase.Score.Score(this.game);
@@ -1662,7 +1736,7 @@ var GameBase;
         }
         */
         Main.prototype.render = function () {
-            this.game.debug.text('LEVEL ' + this.presentation.level, this.game.world.centerX, 35);
+            // this.game.debug.text('LEVEL ' + this.presentation.level, this.game.world.centerX, 35);
         };
         // calls when leaving state
         Main.prototype.shutdown = function () {

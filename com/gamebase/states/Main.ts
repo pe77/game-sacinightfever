@@ -40,6 +40,7 @@ module GameBase
 			this.presentation = new Presentation.Presentation(this.game);
 			this.presentation.controller = new Step.Controller(this.game);
 			this.presentation.audience = new Audience.Audience(this.game);
+			this.presentation.level = new Level.Level(this.game);
 			this.presentation.likometer = new Bar.Likometer(
 				this.game, 
 				this.game.add.sprite(0, 0, 'likebar-back'),
@@ -135,7 +136,7 @@ module GameBase
 
 		render()
         {
-             this.game.debug.text('LEVEL ' + this.presentation.level, this.game.world.centerX, 35);
+             // this.game.debug.text('LEVEL ' + this.presentation.level, this.game.world.centerX, 35);
         }
 		
 		
