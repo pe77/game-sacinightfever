@@ -442,6 +442,7 @@ var GameBase;
             var _this = _super.call(this, new Config()) || this;
             // add default state
             _this.state.add('Main', GameBase.Main);
+            _this.state.add('Intro', GameBase.Intro);
             return _this;
         }
         return Game;
@@ -457,7 +458,7 @@ var GameBase;
             _this.loaderState = GameBase.Loader;
             // this.canvasSize = ["100%", 720];
             _this.canvasSize = [450, 720];
-            _this.initialState = 'Main';
+            _this.initialState = 'Intro';
             return _this;
         }
         return Config;
@@ -604,6 +605,17 @@ var GameBase;
             this.load.audio('main-dance', 'assets/states/main/audio/music1.mp3');
             // scenario
             this.load.image('main-bg', 'assets/states/main/images/scenario/bg.png');
+            // intro
+            this.load.image('intro-jam', 'assets/states/intro/images/jam.png');
+            this.load.image('intro-henrique', 'assets/states/intro/images/henrique.png');
+            this.load.image('intro-andrezito', 'assets/states/intro/images/andrezito.png');
+            this.load.image('intro-magrao', 'assets/states/intro/images/magrao.png');
+            this.load.audio('intro-audiobg', 'assets/states/intro/audio/bg-cut.mp3');
+            this.load.image('intro-btn', 'assets/states/intro/images/btniniciar.png');
+            this.load.image('intro-gamelogo', 'assets/states/intro/images/gamelogo.png');
+            this.load.image('intro-audience', 'assets/states/intro/images/plateia.png');
+            this.load.image('intro-luz', 'assets/states/intro/images/luz.png');
+            this.load.image('intro-saci', 'assets/states/intro/images/saci.png');
             // generic
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');
@@ -1634,6 +1646,179 @@ var GameBase;
         }(Pk.PkElement));
         Step.StepPack = StepPack;
     })(Step = GameBase.Step || (GameBase.Step = {}));
+})(GameBase || (GameBase = {}));
+/// <reference path='../../pkframe/refs.ts' />
+var GameBase;
+(function (GameBase) {
+    var Intro = (function (_super) {
+        __extends(Intro, _super);
+        function Intro() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Intro.prototype.init = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            _super.prototype.init.call(this, args); // if whant override init, you need this line!
+        };
+        Intro.prototype.create = function () {
+            var _this = this;
+            _super.prototype.create.call(this);
+            // change state bg
+            this.game.stage.backgroundColor = "#000";
+            // prevent stop update when focus out
+            this.stage.disableVisibilityChange = true;
+            // audio
+            this.musicBG = this.game.add.audio('intro-audiobg');
+            this.musicBG.onDecoded.add(this.playSound, this); // load
+            this.jam = this.game.add.sprite(0, 0, 'intro-jam');
+            this.jam.alpha = 0;
+            this.jam.anchor.set(.5, .5);
+            this.jam.x = this.game.world.centerX;
+            this.jam.y = this.game.world.centerY;
+            this.henrique = this.game.add.sprite(0, 0, 'intro-henrique');
+            this.henrique.alpha = 0;
+            this.henrique.anchor.set(.5, .5);
+            this.henrique.x = this.game.world.centerX;
+            this.henrique.y = this.game.world.centerY;
+            this.andrezito = this.game.add.sprite(0, 0, 'intro-andrezito');
+            this.andrezito.alpha = 0;
+            this.andrezito.anchor.set(.5, .5);
+            this.andrezito.x = this.game.world.centerX;
+            this.andrezito.y = this.game.world.centerY;
+            this.magrao = this.game.add.sprite(0, 0, 'intro-magrao');
+            this.magrao.alpha = 0;
+            this.magrao.anchor.set(.5, .5);
+            this.magrao.x = this.game.world.centerX;
+            this.magrao.y = this.game.world.centerY;
+            // this.showIntro();
+            // return;
+            this.alphaInOut(this.jam, function () {
+                _this.game.add.tween(_this.henrique).to({
+                    alpha: 1
+                }, 1000, Phaser.Easing.Linear.None, true).onComplete.add(function () {
+                    _this.game.add.tween(_this.magrao).to({ alpha: 1 }, 200, Phaser.Easing.Linear.None, true);
+                    _this.game.add.tween(_this.magrao).to({
+                        y: _this.magrao.y + 150
+                    }, 600, Phaser.Easing.Elastic.Out, true);
+                    _this.game.add.tween(_this.andrezito).to({ alpha: 1 }, 200, Phaser.Easing.Linear.None, true);
+                    _this.game.add.tween(_this.andrezito).to({
+                        y: _this.magrao.y - 150
+                    }, 600, Phaser.Easing.Elastic.Out, true, 250).onComplete.add(function () {
+                        setTimeout(function () {
+                            _this.game.add.tween(_this.henrique).to({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
+                            _this.game.add.tween(_this.magrao).to({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
+                            _this.game.add.tween(_this.andrezito).to({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true).onComplete.add(function () {
+                                _this.showIntro();
+                            }, _this);
+                        }, 2000);
+                    }, _this);
+                }, _this);
+            });
+        };
+        Intro.prototype.showIntro = function () {
+            var _this = this;
+            var bg = Pk.PkUtils.createSquare(this.game, this.game.world.width, this.game.world.height, "#938da0");
+            this.game.add.tween(bg).from({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
+            var luz = this.game.add.sprite(0, 0, 'intro-luz');
+            // this.game.add.tween(luz).from({alpha:0}, 200, Phaser.Easing.Linear.None, true);
+            var logo = this.game.add.sprite(0, 0, 'intro-gamelogo');
+            this.game.add.tween(logo).from({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
+            var saci = this.game.add.sprite(0, 0, 'intro-saci');
+            this.game.add.tween(saci).from({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
+            var audience = this.game.add.sprite(0, 0, 'intro-audience');
+            this.game.add.tween(audience).from({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
+            var btn = this.game.add.sprite(0, 0, 'intro-btn');
+            this.game.add.tween(btn).from({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
+            audience.anchor.y = 1;
+            audience.y = this.game.world.height;
+            logo.anchor.x = .5;
+            logo.x = this.game.world.centerX;
+            btn.anchor.x = .5;
+            btn.x = this.game.world.centerX;
+            btn.y = 550;
+            saci.anchor.x = .5;
+            saci.anchor.y = 1;
+            saci.x = this.game.world.centerX;
+            saci.y = 520;
+            luz.y += 50;
+            btn.inputEnabled = true;
+            btn.input.useHandCursor = true;
+            btn.events.onInputUp.add(function () {
+                btn.inputEnabled = false;
+                _this.transition.change('Main');
+            }, this);
+            /*
+            this.game.add.tween(saci).to(
+                {
+                    rotation:saci.rotation + 0.1
+                },
+                200,
+                Phaser.Easing.Linear.None,
+                true, 0, -1
+            ).yoyo(true);
+            
+
+            saci.x += 35;
+            this.game.add.tween(saci).to(
+                {
+                    x:saci.x - 70
+                },
+                400,
+                Phaser.Easing.Linear.None,
+                true, 0, -1
+            ).yoyo(true);
+            */
+            this.game.add.tween(saci).to({
+                y: saci.y - 15
+            }, 200, Phaser.Easing.Linear.None, true, 0, -1).yoyo(true);
+            this.game.add.tween(luz).to({
+                alpha: 0
+            }, 100, Phaser.Easing.Exponential.Out, true, 0, -1).yoyo(true);
+            this.game.add.tween(logo).from({
+                y: logo.y - 100
+            }, 1200, Phaser.Easing.Bounce.Out, true);
+            this.game.add.tween(audience).to({
+                y: audience.y + 10
+            }, 200, Phaser.Easing.Linear.None, true, 0, -1).yoyo(true);
+            /*
+            btn.alpha = 0;
+            logo.alpha = 0;
+            audience.alpha = 0;
+            luz.alpha = 0;
+            saci.alpha = 0;
+            */
+        };
+        Intro.prototype.alphaInOut = function (object, callBack) {
+            var _this = this;
+            var tween = this.game.add.tween(object).to({
+                alpha: 1
+            }, 1000, Phaser.Easing.Linear.None, true);
+            tween.onComplete.add(function () {
+                var tween = _this.game.add.tween(object).to({
+                    alpha: 0
+                }, 1000, Phaser.Easing.Linear.None, true, 2500);
+                tween.onComplete.add(function () {
+                    callBack();
+                }, _this);
+            }, this);
+        };
+        Intro.prototype.playSound = function () {
+            // play music
+            this.musicBG.volume = 0.6;
+            this.musicBG.fadeIn(600, true);
+            // this.musicBG.play('', 0, 0.6, true);
+        };
+        // calls when leaving state
+        Intro.prototype.shutdown = function () {
+            if (this.musicBG.isPlaying)
+                this.musicBG.stop();
+            //
+        };
+        return Intro;
+    }(Pk.PkState));
+    GameBase.Intro = Intro;
 })(GameBase || (GameBase = {}));
 /// <reference path='../../pkframe/refs.ts' />
 var GameBase;

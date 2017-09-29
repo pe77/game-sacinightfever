@@ -10,6 +10,7 @@ module GameBase {
 
             // add default state
             this.state.add('Main', GameBase.Main);
+            this.state.add('Intro', GameBase.Intro);
 
         }
     }
@@ -31,7 +32,7 @@ module GameBase {
             this.canvasSize = [450, 720];
 
 
-            this.initialState = 'Main';
+            this.initialState = 'Intro';
         }
     }
     

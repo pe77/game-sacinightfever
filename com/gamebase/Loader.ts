@@ -92,6 +92,19 @@ module GameBase {
             // scenario
             this.load.image('main-bg', 'assets/states/main/images/scenario/bg.png');
 
+            // intro
+            this.load.image('intro-jam', 'assets/states/intro/images/jam.png');
+            this.load.image('intro-henrique', 'assets/states/intro/images/henrique.png');
+            this.load.image('intro-andrezito', 'assets/states/intro/images/andrezito.png');
+            this.load.image('intro-magrao', 'assets/states/intro/images/magrao.png');
+
+            this.load.audio('intro-audiobg', 'assets/states/intro/audio/bg-cut.mp3');
+
+            this.load.image('intro-btn', 'assets/states/intro/images/btniniciar.png');
+            this.load.image('intro-gamelogo', 'assets/states/intro/images/gamelogo.png');
+            this.load.image('intro-audience', 'assets/states/intro/images/plateia.png');
+            this.load.image('intro-luz', 'assets/states/intro/images/luz.png');
+            this.load.image('intro-saci', 'assets/states/intro/images/saci.png');
             // generic
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');
