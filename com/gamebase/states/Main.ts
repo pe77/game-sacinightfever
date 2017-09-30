@@ -105,6 +105,11 @@ module GameBase
 				saci.playNextMove();
 			}, this);
 
+			this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnMissStep, ()=>{
+				console.log('--- wrongMove')
+				saci.wrongMove();
+			}, this);
+
 			// audio
             this.musicBG = this.game.add.audio('main-dance');
             this.musicBG.onDecoded.add(this.playSound, this); // load

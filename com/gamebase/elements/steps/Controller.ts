@@ -50,11 +50,17 @@ module GameBase
 
                 // ajusta o tamanho pra ficar um pouco maior que o step~
                 var basePadding = 15;
-                this.base.width = this.base.height = stepSize + basePadding;
+                // this.base.width = this.base.height = stepSize + basePadding;
+                
 
                 // centraliza a base
                 this.base.x -= basePadding / 2;
                 this.base.y -= basePadding / 2;
+
+                this.base.x -= 6;
+                this.base.y -= 10;
+
+                console.log('--- this.base:', this.base.alpha)
             }
 
             // toca o proximo pack

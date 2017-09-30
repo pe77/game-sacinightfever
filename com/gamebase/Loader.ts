@@ -85,6 +85,7 @@ module GameBase {
             this.load.spritesheet('saci-move1', 'assets/default/images/saci/saci1.png', 184, 253, 2);
             this.load.spritesheet('saci-move2', 'assets/default/images/saci/saci2.png', 184, 253, 2);
             this.load.spritesheet('saci-move3', 'assets/default/images/saci/saci3.png', 184, 253, 2);
+            this.load.image('saci-wrong', 'assets/default/images/saci/saci-wrong.png');
 
             // musicas
             this.load.audio('main-dance', 'assets/states/main/audio/music1.mp3');

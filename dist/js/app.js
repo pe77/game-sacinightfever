@@ -458,7 +458,7 @@ var GameBase;
             _this.loaderState = GameBase.Loader;
             // this.canvasSize = ["100%", 720];
             _this.canvasSize = [450, 720];
-            _this.initialState = 'Intro';
+            _this.initialState = 'Main';
             return _this;
         }
         return Config;
@@ -601,6 +601,7 @@ var GameBase;
             this.load.spritesheet('saci-move1', 'assets/default/images/saci/saci1.png', 184, 253, 2);
             this.load.spritesheet('saci-move2', 'assets/default/images/saci/saci2.png', 184, 253, 2);
             this.load.spritesheet('saci-move3', 'assets/default/images/saci/saci3.png', 184, 253, 2);
+            this.load.image('saci-wrong', 'assets/default/images/saci/saci-wrong.png');
             // musicas
             this.load.audio('main-dance', 'assets/states/main/audio/music1.mp3');
             // scenario
@@ -656,10 +657,7 @@ var GameBase;
                     _this.endTimeBar();
                 }, this);
                 this.likometer.event.add(GameBase.Bar.E.LikometerEvent.OnOver, function () {
-                    _this.gameOver = true;
-                    alert("PERDEUUU...\nScore: [Temers: " + _this.score.value + ', Level:' + _this.level + "]\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ");
-                    // para o tempo
-                    _this.timeBar.stopCount();
+                    _this.endGame(false);
                 }, this);
                 // sempre que o pack acabar...
                 this.controller.event.add(GameBase.Step.E.ControllerEvent.OnEndPack, function (e, hit, originalPackSize) {
@@ -685,16 +683,21 @@ var GameBase;
                         //
                     }, 800);
                 }, this);
+                this.audience.pulse();
                 this.updatePosition();
             };
             Presentation.prototype.start = function (level) {
+                // seta o level
+                this.level.setLevel(level);
+                this.score.setValue(0);
+                this.likometer.setValue(80);
+                this.gameOver = false;
                 // reseta / para o tempo
                 this.timeBar.stopCount();
                 // add umas notinhas
                 this.prepare();
                 // começa a colocar os steps
                 this.controller.playNext();
-                this.audience.pulse();
             };
             Presentation.prototype.prepare = function () {
                 // a cada level, vai diminuindo os packs
@@ -712,6 +715,10 @@ var GameBase;
                 if (hit)
                     this.level.setLevel(this.level.level + 1);
                 //
+                if (this.level.level == 3) {
+                    this.endGame(true);
+                    return;
+                }
                 // add umas notinhas
                 this.prepare();
                 // toca
@@ -765,6 +772,7 @@ var GameBase;
                 else {
                     this.likometer.removeValue(30);
                     this.controller.killStep(false);
+                    this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnMissStep);
                 }
                 // se for a primeira nota, toca eventos
                 if (this.firstNote) {
@@ -784,6 +792,24 @@ var GameBase;
                 this.score.y += 20;
                 this.level.y = this.score.y + this.score.height + 30;
             };
+            Presentation.prototype.endGame = function (win) {
+                if (win === void 0) { win = false; }
+                this.gameOver = true;
+                // para o tempo
+                this.timeBar.stopCount();
+                if (win) {
+                    alert("GANHOUUU...\nScore: [Temers: " + this.score.value + ']\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ');
+                }
+                else {
+                    alert("ERRRROUU...\nScore: [Temers: " + this.score.value + ']\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ');
+                }
+                this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnFirstNote, win);
+                this.restart();
+            };
+            Presentation.prototype.restart = function () {
+                // volta pro level 1
+                this.start(1);
+            };
             return Presentation;
         }(Pk.PkElement));
         Presentation_1.Presentation = Presentation;
@@ -792,7 +818,9 @@ var GameBase;
             var PresentationEvent;
             (function (PresentationEvent) {
                 PresentationEvent.OnFirstNote = "OnPresentationEventFirstNote";
+                PresentationEvent.OnEndGame = "PresentationOnEndGame";
                 PresentationEvent.OnChangeStepPack = "OnPresentationChangeStepPack";
+                PresentationEvent.OnMissStep = "PresentationOnMissStep";
             })(PresentationEvent = E.PresentationEvent || (E.PresentationEvent = {}));
         })(E = Presentation_1.E || (Presentation_1.E = {}));
     })(Presentation = GameBase.Presentation || (GameBase.Presentation = {}));
@@ -1141,14 +1169,36 @@ var GameBase;
                     move.stop();
                     _this.add(move);
                 });
+                this.wrong = this.game.add.sprite(0, 0, 'saci-wrong');
+                this.wrong.visible = false;
+                this.wrong.anchor.set(0.5, 0.5);
+                this.wrong.x = (this.wrong.width / 2) - 30;
+                this.wrong.y = (this.wrong.height / 2) + 65;
+                this.add(this.wrong);
             };
             Saci.prototype.addMove = function (move) {
                 this.moves.push(move);
+            };
+            Saci.prototype.wrongMove = function () {
+                var _this = this;
+                console.log('--- wrongMove 22');
+                if (this.currentMove)
+                    this.currentMove.visible = false;
+                //
+                this.wrong.visible = true;
+                this.game.add.tween(this.wrong).to({
+                    rotation: 1.1
+                }, 150, Phaser.Easing.Linear.None, true, 0, 5).yoyo(true).onComplete.add(function () {
+                    console.log('------ complete');
+                    _this.wrong.visible = false;
+                    _this.wrong.rotation = 1;
+                }, this);
             };
             Saci.prototype.playNextMove = function () {
                 if (!this.moves.length)
                     return;
                 //
+                this.wrong.visible = false;
                 for (var i in this.moves) {
                     this.moves[i].stop();
                     if (this.currentMove == this.moves[i]) {
@@ -1166,6 +1216,7 @@ var GameBase;
                 if (!this.currentMove)
                     this.currentMove = this.moves[0];
                 //
+                this.currentMove.visible = true;
                 this.currentMove.play();
             };
             return Saci;
@@ -1309,7 +1360,14 @@ var GameBase;
                 console.log('creating BASE');
                 this.back = this.game.add.sprite(0, 0, 'step-back');
                 // this.back = Pk.PkUtils.createSquare(this.game, 60, 60);
-                this.back.alpha = 0.7;
+                // this.back.alpha = 0.7;
+                this.back.anchor.set(0.5, 0.5);
+                this.back.x += this.back.width / 2;
+                this.back.y += this.back.height / 2;
+                this.game.add.tween(this.back.scale).to({
+                    x: 1.1,
+                    y: 1.1
+                }, 300, Phaser.Easing.Linear.None, true, 0, -1).yoyo(true);
                 this.add(this.back);
             };
             return Base;
@@ -1352,10 +1410,13 @@ var GameBase;
                 var stepSize = 50; //this.stepPacks.length ? this.stepPacks[0].steps[0].width : 50;
                 // ajusta o tamanho pra ficar um pouco maior que o step~
                 var basePadding = 15;
-                this.base.width = this.base.height = stepSize + basePadding;
+                // this.base.width = this.base.height = stepSize + basePadding;
                 // centraliza a base
                 this.base.x -= basePadding / 2;
                 this.base.y -= basePadding / 2;
+                this.base.x -= 6;
+                this.base.y -= 10;
+                console.log('--- this.base:', this.base.alpha);
             };
             // toca o proximo pack
             Controller.prototype.playNext = function () {
@@ -1567,7 +1628,7 @@ var GameBase;
             StepPack.prototype.addStep = function (step) {
                 if (!this.currentStep)
                     this.currentStep = step;
-                //
+                // 
                 this.steps.push(step);
                 this.originalPackSize = this.steps.length;
                 this.add(step);
@@ -1894,6 +1955,10 @@ var GameBase;
             this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnChangeStepPack, function () {
                 console.log('CHANGE PACK');
                 saci.playNextMove();
+            }, this);
+            this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnMissStep, function () {
+                console.log('--- wrongMove');
+                saci.wrongMove();
             }, this);
             // audio
             this.musicBG = this.game.add.audio('main-dance');

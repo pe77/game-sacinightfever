@@ -39,13 +39,7 @@ module GameBase
                 }, this);
 
                 this.likometer.event.add(GameBase.Bar.E.LikometerEvent.OnOver, ()=>{
-
-                    this.gameOver = true;
-
-                    alert("PERDEUUU...\nScore: [Temers: "+this.score.value+', Level:'+this.level+"]\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ");
-
-                    // para o tempo
-                    this.timeBar.stopCount();
+                    this.endGame(false);
                 }, this);
 
 
@@ -82,11 +76,22 @@ module GameBase
 
                 }, this);
 
+                this.audience.pulse();
+
                 this.updatePosition();
             }
 
             start(level:number)
             {
+                // seta o level
+                this.level.setLevel(level);
+
+                this.score.setValue(0);
+
+                this.likometer.setValue(80);
+
+                this.gameOver = false;
+
                 // reseta / para o tempo
 				this.timeBar.stopCount();
 
@@ -96,7 +101,7 @@ module GameBase
                 // começa a colocar os steps
                 this.controller.playNext();
 
-                this.audience.pulse();
+                
             }
 
             prepare()
@@ -121,6 +126,12 @@ module GameBase
                 if(hit)
                     this.level.setLevel(this.level.level+1);
                 //
+
+                if(this.level.level == 3)
+                {
+                    this.endGame(true);
+                    return;
+                }
 
                 // add umas notinhas
                 this.prepare();
@@ -196,6 +207,8 @@ module GameBase
                     
                     this.likometer.removeValue(30);
                     this.controller.killStep(false);
+
+                    this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnMissStep);
                 }
 
                 // se for a primeira nota, toca eventos
@@ -223,6 +236,32 @@ module GameBase
 
                 this.level.y = this.score.y + this.score.height + 30;
             }
+
+            endGame(win:boolean = false)
+            {
+                this.gameOver = true;
+
+                // para o tempo
+                this.timeBar.stopCount();
+
+                if(win)
+                {
+                    alert("GANHOUUU...\nScore: [Temers: "+this.score.value+']\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ');
+                }else{
+                    alert("ERRRROUU...\nScore: [Temers: "+this.score.value+']\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ');
+                }
+
+                this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnFirstNote, win);
+
+                this.restart();
+            }
+
+            restart()
+            {
+                // volta pro level 1
+                this.start(1);
+
+            }
         }
 
         export module E
@@ -230,7 +269,9 @@ module GameBase
             export module PresentationEvent
             {
                 export const OnFirstNote:string 	    = "OnPresentationEventFirstNote";
+                export const OnEndGame:string 	        = "PresentationOnEndGame";
                 export const OnChangeStepPack:string 	= "OnPresentationChangeStepPack";
+                export const OnMissStep:string 	= "PresentationOnMissStep";
             }
         }
 

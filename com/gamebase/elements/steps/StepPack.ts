@@ -24,7 +24,7 @@ module GameBase
             {
                 if(!this.currentStep)
                     this.currentStep = step;
-                //
+                // 
 
                 this.steps.push(step);
 
