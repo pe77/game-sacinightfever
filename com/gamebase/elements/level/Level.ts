@@ -7,6 +7,7 @@ module GameBase
             text:Phaser.Text;
             bg:Phaser.Sprite;
             level:number = 1;
+            originalX:number;
 
             constructor(game:Pk.PkGame)
             {
@@ -59,6 +60,10 @@ module GameBase
 
             setLevel(level:number)
             {
+                if(!this.originalX)
+                    this.originalX = this.x;
+                //
+
                 this.level = level < 1 ? 1 : level;
                 this.processLevel();
             }
@@ -74,6 +79,8 @@ module GameBase
                 this.text.text = 'Nivel  ' + this.level + ' / 12';
 
                 // faz uma animaçãozinha basica
+                this.x = this.originalX;
+                
                 var t:Phaser.Tween = this.addTween(this).from(
                     {
                         x:this.x-20

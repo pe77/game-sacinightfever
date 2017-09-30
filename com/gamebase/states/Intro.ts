@@ -8,6 +8,7 @@ module GameBase
 		enterKey:Phaser.Key;
 
         jam:Phaser.Sprite;
+        phaser:Phaser.Sprite;
         henrique:Phaser.Sprite;
         magrao:Phaser.Sprite;
         andrezito:Phaser.Sprite;
@@ -32,6 +33,13 @@ module GameBase
 			// audio
             this.musicBG = this.game.add.audio('intro-audiobg');
             this.musicBG.onDecoded.add(this.playSound, this); // load
+
+            this.phaser = this.game.add.sprite(0, 0, 'intro-phaser');
+            this.phaser.alpha = 0;
+
+            this.phaser.anchor.set(.5, .5);
+            this.phaser.x = this.game.world.centerX;
+            this.phaser.y = this.game.world.centerY;
 
             this.jam = this.game.add.sprite(0, 0, 'intro-jam');
             this.jam.alpha = 0;
@@ -61,6 +69,7 @@ module GameBase
             // this.showIntro();
             // return;
 
+            this.alphaInOut(this.phaser, ()=>{
             this.alphaInOut(this.jam, ()=>{
                 
 
@@ -96,7 +105,7 @@ module GameBase
                             this.game.add.tween(this.andrezito).to({alpha:0}, 200, Phaser.Easing.Linear.None, true).onComplete.add(()=>{
                                 this.showIntro()
                             }, this);
-                        }, 2000)
+                        }, 3000)
                         
                     }, this);
                     
@@ -104,6 +113,7 @@ module GameBase
                 }, this);
 
                 
+            });
             });
 
 		}
@@ -242,7 +252,7 @@ module GameBase
                         alpha:0
                     }, 
                     1000, 
-                    Phaser.Easing.Linear.None, true, 2500
+                    Phaser.Easing.Linear.None, true, 3000
               );  
 
               tween.onComplete.add(()=>{

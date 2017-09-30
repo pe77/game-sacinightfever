@@ -11,6 +11,9 @@ module GameBase
 
             event:Pk.PkEvent;
 
+            stepSound:Phaser.Sound;
+            stepSoundWrong:Phaser.Sound;
+
             constructor(game:Pk.PkGame)
             {
                 super(game);
@@ -60,6 +63,10 @@ module GameBase
                 this.base.x -= 6;
                 this.base.y -= 10;
 
+
+                this.stepSound = this.game.add.audio('sfx-step');
+                this.stepSoundWrong = this.game.add.audio('sfx-step-fail');
+
                 console.log('--- this.base:', this.base.alpha)
             }
 
@@ -99,7 +106,17 @@ module GameBase
                 //
 
                 // se é a mesma
-                return this.currentPack.currentStep.direction == direction;
+                var hit:boolean = this.currentPack.currentStep.direction == direction;
+
+                if(hit)
+                {
+                    this.stepSound.volume = 3;
+                    this.stepSound.play();
+                }else{
+                    this.stepSoundWrong.play();
+                }
+                
+                return hit;
             }
 
             // remove o step do pack current

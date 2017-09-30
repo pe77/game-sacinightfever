@@ -44,7 +44,7 @@ module GameBase {
             this.load.setPreloadSprite(this.loadingBar);
 
             // pos loading bar on bot
-            this.loadingBar.y = this.world.height - this.loadingBar.height;
+            this.loadingBar.y = this.world.height - this.loadingBar.height - 80;
 
             //  ** ADDING Other things  ** //
 
@@ -95,6 +95,7 @@ module GameBase {
 
             // intro
             this.load.image('intro-jam', 'assets/states/intro/images/jam.png');
+            this.load.image('intro-phaser', 'assets/states/intro/images/phaser.png');
             this.load.image('intro-henrique', 'assets/states/intro/images/henrique.png');
             this.load.image('intro-andrezito', 'assets/states/intro/images/andrezito.png');
             this.load.image('intro-magrao', 'assets/states/intro/images/magrao.png');
@@ -106,7 +107,21 @@ module GameBase {
             this.load.image('intro-audience', 'assets/states/intro/images/plateia.png');
             this.load.image('intro-luz', 'assets/states/intro/images/luz.png');
             this.load.image('intro-saci', 'assets/states/intro/images/saci.png');
-            // generic
+
+            // endgame
+            this.load.image('endgame-btn', 'assets/states/main/images/endgame/jogarnovamente.png');
+
+
+            // sfx
+            this.load.audio('sfx-step', 'assets/default/audio/ziclick.mp3');
+            this.load.audio('sfx-step-fail', 'assets/default/audio/wrongstep.wav');
+
+            this.load.audio('sfx-endgame-lose', 'assets/default/audio/endgame-lose.wav');
+
+            this.load.audio('sfx-audience-boo', 'assets/default/audio/boo.wav');
+            this.load.audio('sfx-audience-wow', 'assets/default/audio/roaringcrowd.mp3');
+
+
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');
             // this.load.spritesheet('char1-idle', 'assets/default/images/chars/heroes/1/iddle.png', 158, 263, 12);

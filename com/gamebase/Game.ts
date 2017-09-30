@@ -32,7 +32,7 @@ module GameBase {
             this.canvasSize = [450, 720];
 
 
-            this.initialState = 'Main';
+            this.initialState = 'Intro';
         }
     }
     

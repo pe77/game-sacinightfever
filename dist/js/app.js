@@ -458,7 +458,7 @@ var GameBase;
             _this.loaderState = GameBase.Loader;
             // this.canvasSize = ["100%", 720];
             _this.canvasSize = [450, 720];
-            _this.initialState = 'Main';
+            _this.initialState = 'Intro';
             return _this;
         }
         return Config;
@@ -570,7 +570,7 @@ var GameBase;
             // set sprite as preloading
             this.load.setPreloadSprite(this.loadingBar);
             // pos loading bar on bot
-            this.loadingBar.y = this.world.height - this.loadingBar.height;
+            this.loadingBar.y = this.world.height - this.loadingBar.height - 80;
             //  ** ADDING Other things  ** //
             // scripts
             this.load.script('gray', 'assets/default/scripts/filters/Gray.js');
@@ -608,6 +608,7 @@ var GameBase;
             this.load.image('main-bg', 'assets/states/main/images/scenario/bg.png');
             // intro
             this.load.image('intro-jam', 'assets/states/intro/images/jam.png');
+            this.load.image('intro-phaser', 'assets/states/intro/images/phaser.png');
             this.load.image('intro-henrique', 'assets/states/intro/images/henrique.png');
             this.load.image('intro-andrezito', 'assets/states/intro/images/andrezito.png');
             this.load.image('intro-magrao', 'assets/states/intro/images/magrao.png');
@@ -617,7 +618,14 @@ var GameBase;
             this.load.image('intro-audience', 'assets/states/intro/images/plateia.png');
             this.load.image('intro-luz', 'assets/states/intro/images/luz.png');
             this.load.image('intro-saci', 'assets/states/intro/images/saci.png');
-            // generic
+            // endgame
+            this.load.image('endgame-btn', 'assets/states/main/images/endgame/jogarnovamente.png');
+            // sfx
+            this.load.audio('sfx-step', 'assets/default/audio/ziclick.mp3');
+            this.load.audio('sfx-step-fail', 'assets/default/audio/wrongstep.wav');
+            this.load.audio('sfx-endgame-lose', 'assets/default/audio/endgame-lose.wav');
+            this.load.audio('sfx-audience-boo', 'assets/default/audio/boo.wav');
+            this.load.audio('sfx-audience-wow', 'assets/default/audio/roaringcrowd.mp3');
             // this.load.image('cinematic-bg', 'assets/states/intro/images/cinematic-bg.jpg');
             // this.load.audio('intro-sound', 'assets/states/intro/sounds/intro.mp3');
             // this.load.spritesheet('char1-idle', 'assets/default/images/chars/heroes/1/iddle.png', 158, 263, 12);
@@ -651,6 +659,7 @@ var GameBase;
                 this.timeBar.create();
                 this.score.create();
                 this.level.create();
+                this.sfxEndGameLose = this.game.add.sound('sfx-endgame-lose');
                 // eventos
                 // sempre que termina a contagem de tempo
                 this.timeBar.event.add(GameBase.Bar.E.TimeEvent.OnEndCount, function () {
@@ -711,14 +720,14 @@ var GameBase;
                 //
             };
             Presentation.prototype.playNextLevel = function (hit, originalPackSize) {
+                if (this.level.level == 12 && hit) {
+                    this.endGame(true);
+                    return;
+                }
                 // almenta a dificuldade, se acertou
                 if (hit)
                     this.level.setLevel(this.level.level + 1);
                 //
-                if (this.level.level == 3) {
-                    this.endGame(true);
-                    return;
-                }
                 // add umas notinhas
                 this.prepare();
                 // toca
@@ -797,14 +806,18 @@ var GameBase;
                 this.gameOver = true;
                 // para o tempo
                 this.timeBar.stopCount();
-                if (win) {
-                    alert("GANHOUUU...\nScore: [Temers: " + this.score.value + ']\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ');
+                /*
+                if(win)
+                {
+                    alert("GANHOUUU...\nScore: [Temers: "+this.score.value+']\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ');
+                }else{
+                    
+                    this.sfxEndGameLose.play();
+                    alert("ERRRROUU...\nScore: [Temers: "+this.score.value+']\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ');
                 }
-                else {
-                    alert("ERRRROUU...\nScore: [Temers: " + this.score.value + ']\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ');
-                }
-                this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnFirstNote, win);
-                this.restart();
+                */
+                this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnEndGame, win);
+                // this.restart();
             };
             Presentation.prototype.restart = function () {
                 // volta pro level 1
@@ -946,7 +959,23 @@ var GameBase;
                 return _super.call(this, game, backSprite, barSprite, borderSprite) || this;
             }
             Likometer.prototype.create = function () {
-                _super.prototype.create.call(this);
+                // cria uma mascara do tamanho da barra
+                this.maskGraph = this.game.add.graphics(0, 0);
+                this.maskGraph.beginFill(0xffffff);
+                this.maskGraph.lineStyle(1, 0xffd900, 1);
+                console.log('this.borderSprite.width:', this.borderSprite.width);
+                console.log('this.borderSprite.height:', this.borderSprite.height);
+                this.maskGraph.drawRect(0, 0, this.borderSprite.width, this.borderSprite.height - 7);
+                this.maskGraph.endFill();
+                // this.mask = this.maskGraph;
+                this.barSprite.mask = this.maskGraph;
+                // usa o tamanho da mascara como tamanho 100%
+                this.maxSize = this.borderSprite.height;
+                // this.barSprite.y += 100
+                this.add(this.backSprite);
+                this.add(this.barSprite);
+                this.add(this.borderSprite);
+                this.add(this.maskGraph);
                 this.smile = this.game.add.sprite(0, 0, 'likebar-smile');
                 this.sad = this.game.add.sprite(0, 0, 'likebar-sad');
                 // coloca acime a abaixo da barra
@@ -955,6 +984,8 @@ var GameBase;
                 this.sad.y += this.borderSprite.height + padding;
                 this.smile.anchor.x = this.sad.anchor.x = 0.5;
                 this.sad.x = this.smile.x = this.borderSprite.width / 2;
+                this.sfxBoo = this.game.add.sound('sfx-audience-boo');
+                this.sfxWow = this.game.add.sound('sfx-audience-wow');
                 this.add(this.smile);
                 this.add(this.sad);
             };
@@ -970,6 +1001,31 @@ var GameBase;
             };
             Likometer.prototype.setValue = function (value) {
                 _super.prototype.setValue.call(this, value);
+            };
+            Likometer.prototype.wow = function () {
+                this.game.add.tween(this.smile).from({
+                    y: this.smile.y - 10
+                }, 150, Phaser.Easing.Linear.None, true, 0, 5).yoyo(true).onComplete.add(function () {
+                }, this);
+                this.sfxWow.play();
+            };
+            Likometer.prototype.boo = function () {
+                this.game.add.tween(this.sad).from({
+                    y: this.sad.y - 10
+                }, 150, Phaser.Easing.Linear.None, true, 0, 5).yoyo(true).onComplete.add(function () {
+                }, this);
+                this.sfxBoo.play();
+            };
+            Likometer.prototype.processValue = function (time) {
+                if (time === void 0) { time = 500; }
+                _super.prototype.processValue.call(this, time);
+                if (this.value >= 100 && this.lastValue != 100)
+                    this.wow();
+                //
+                if (this.value <= 30 && this.lastValue > 30)
+                    this.boo();
+                // 
+                this.lastValue = this.value;
             };
             return Likometer;
         }(Bar.Vertical));
@@ -1099,6 +1155,9 @@ var GameBase;
                 this.processLevel();
             };
             Level.prototype.setLevel = function (level) {
+                if (!this.originalX)
+                    this.originalX = this.x;
+                //
                 this.level = level < 1 ? 1 : level;
                 this.processLevel();
             };
@@ -1109,6 +1168,7 @@ var GameBase;
             Level.prototype.processLevel = function () {
                 this.text.text = 'Nivel  ' + this.level + ' / 12';
                 // faz uma animaçãozinha basica
+                this.x = this.originalX;
                 var t = this.addTween(this).from({
                     x: this.x - 20
                 }, 200, Phaser.Easing.Back.Out, true, 0, 0);
@@ -1416,6 +1476,8 @@ var GameBase;
                 this.base.y -= basePadding / 2;
                 this.base.x -= 6;
                 this.base.y -= 10;
+                this.stepSound = this.game.add.audio('sfx-step');
+                this.stepSoundWrong = this.game.add.audio('sfx-step-fail');
                 console.log('--- this.base:', this.base.alpha);
             };
             // toca o proximo pack
@@ -1442,7 +1504,15 @@ var GameBase;
                     return false;
                 //
                 // se é a mesma
-                return this.currentPack.currentStep.direction == direction;
+                var hit = this.currentPack.currentStep.direction == direction;
+                if (hit) {
+                    this.stepSound.volume = 3;
+                    this.stepSound.play();
+                }
+                else {
+                    this.stepSoundWrong.play();
+                }
+                return hit;
             };
             // remove o step do pack current
             Controller.prototype.killStep = function (hit) {
@@ -1733,6 +1803,11 @@ var GameBase;
             // audio
             this.musicBG = this.game.add.audio('intro-audiobg');
             this.musicBG.onDecoded.add(this.playSound, this); // load
+            this.phaser = this.game.add.sprite(0, 0, 'intro-phaser');
+            this.phaser.alpha = 0;
+            this.phaser.anchor.set(.5, .5);
+            this.phaser.x = this.game.world.centerX;
+            this.phaser.y = this.game.world.centerY;
             this.jam = this.game.add.sprite(0, 0, 'intro-jam');
             this.jam.alpha = 0;
             this.jam.anchor.set(.5, .5);
@@ -1755,27 +1830,29 @@ var GameBase;
             this.magrao.y = this.game.world.centerY;
             // this.showIntro();
             // return;
-            this.alphaInOut(this.jam, function () {
-                _this.game.add.tween(_this.henrique).to({
-                    alpha: 1
-                }, 1000, Phaser.Easing.Linear.None, true).onComplete.add(function () {
-                    _this.game.add.tween(_this.magrao).to({ alpha: 1 }, 200, Phaser.Easing.Linear.None, true);
-                    _this.game.add.tween(_this.magrao).to({
-                        y: _this.magrao.y + 150
-                    }, 600, Phaser.Easing.Elastic.Out, true);
-                    _this.game.add.tween(_this.andrezito).to({ alpha: 1 }, 200, Phaser.Easing.Linear.None, true);
-                    _this.game.add.tween(_this.andrezito).to({
-                        y: _this.magrao.y - 150
-                    }, 600, Phaser.Easing.Elastic.Out, true, 250).onComplete.add(function () {
-                        setTimeout(function () {
-                            _this.game.add.tween(_this.henrique).to({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
-                            _this.game.add.tween(_this.magrao).to({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
-                            _this.game.add.tween(_this.andrezito).to({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true).onComplete.add(function () {
-                                _this.showIntro();
-                            }, _this);
-                        }, 2000);
+            this.alphaInOut(this.phaser, function () {
+                _this.alphaInOut(_this.jam, function () {
+                    _this.game.add.tween(_this.henrique).to({
+                        alpha: 1
+                    }, 1000, Phaser.Easing.Linear.None, true).onComplete.add(function () {
+                        _this.game.add.tween(_this.magrao).to({ alpha: 1 }, 200, Phaser.Easing.Linear.None, true);
+                        _this.game.add.tween(_this.magrao).to({
+                            y: _this.magrao.y + 150
+                        }, 600, Phaser.Easing.Elastic.Out, true);
+                        _this.game.add.tween(_this.andrezito).to({ alpha: 1 }, 200, Phaser.Easing.Linear.None, true);
+                        _this.game.add.tween(_this.andrezito).to({
+                            y: _this.magrao.y - 150
+                        }, 600, Phaser.Easing.Elastic.Out, true, 250).onComplete.add(function () {
+                            setTimeout(function () {
+                                _this.game.add.tween(_this.henrique).to({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
+                                _this.game.add.tween(_this.magrao).to({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true);
+                                _this.game.add.tween(_this.andrezito).to({ alpha: 0 }, 200, Phaser.Easing.Linear.None, true).onComplete.add(function () {
+                                    _this.showIntro();
+                                }, _this);
+                            }, 3000);
+                        }, _this);
                     }, _this);
-                }, _this);
+                });
             });
         };
         Intro.prototype.showIntro = function () {
@@ -1859,7 +1936,7 @@ var GameBase;
             tween.onComplete.add(function () {
                 var tween = _this.game.add.tween(object).to({
                     alpha: 0
-                }, 1000, Phaser.Easing.Linear.None, true, 2500);
+                }, 1000, Phaser.Easing.Linear.None, true, 3000);
                 tween.onComplete.add(function () {
                     callBack();
                 }, _this);
@@ -1932,20 +2009,20 @@ var GameBase;
             // this.time.startCount(this.timee); // ms
             this.presentation.create();
             this.presentation.start(1);
-            var saci = new GameBase.Saci.Saci(this.game);
-            saci.addMove(new GameBase.Saci.Move1(this.game));
-            saci.addMove(new GameBase.Saci.Move2(this.game));
-            saci.addMove(new GameBase.Saci.Move3(this.game));
-            saci.addMove(new GameBase.Saci.Move2(this.game));
-            saci.create();
-            saci.x = this.game.world.centerX - 80;
-            saci.y += 300;
+            this.saci = new GameBase.Saci.Saci(this.game);
+            this.saci.addMove(new GameBase.Saci.Move1(this.game));
+            this.saci.addMove(new GameBase.Saci.Move2(this.game));
+            this.saci.addMove(new GameBase.Saci.Move3(this.game));
+            this.saci.addMove(new GameBase.Saci.Move2(this.game));
+            this.saci.create();
+            this.saci.x = this.game.world.centerX - 80;
+            this.saci.y += 300;
             // coloca ele paradinho com a bunda kk
-            saci.moves[0].spriteBase.visible = true;
+            this.saci.moves[0].spriteBase.visible = true;
             // quando tocar a primeira nota, começa a dançar
             this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnFirstNote, function () {
                 console.log('FIRST NOTE');
-                saci.playNextMove();
+                _this.saci.playNextMove();
                 /*
                 setInterval(()=>{
                     saci.playNextMove();
@@ -1954,20 +2031,72 @@ var GameBase;
             }, this);
             this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnChangeStepPack, function () {
                 console.log('CHANGE PACK');
-                saci.playNextMove();
+                _this.saci.playNextMove();
             }, this);
             this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnMissStep, function () {
                 console.log('--- wrongMove');
-                saci.wrongMove();
+                _this.saci.wrongMove();
+            }, this);
+            this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnEndGame, function (e, win) {
+                console.log('win::', win);
+                if (win) {
+                    _this.endGameTextDescription.text = "Você ganhou. Quem diria!\n         Dinheiros: " + _this.presentation.score.value;
+                }
+                else {
+                    _this.endGameTextDescription.text = "Você perdeu. Poxa vida...\n          Dinheiros: " + _this.presentation.score.value;
+                }
+                _this.endgameScree.visible = true;
             }, this);
             // audio
             this.musicBG = this.game.add.audio('main-dance');
             this.musicBG.onDecoded.add(this.playSound, this); // load
+            // bg bg! // same world size
+            this.bg = Pk.PkUtils.createSquare(this.game, this.game.world.width, this.game.world.height, "#000");
+            this.bg.alpha = .95;
+            this.endGameTextTitle = this.game.add.text(0, 0, "Fim de Jogo", // text
+            {
+                font: "58px Love Story Rough",
+                fill: "#c8c8c8"
+            } // font style
+            );
+            this.endGameTextDescription = this.game.add.text(0, 0, "Você ganhou. Quem diria!\n         Dinheiros: 134", // text
+            {
+                font: "36px Love Story Rough",
+                fill: "#c8c8c8",
+                boundsAlignH: "center",
+                boundsAlignV: "middle"
+            } // font style
+            );
+            this.endGameTextDescription.anchor.x = this.endGameTextTitle.anchor.x = 0.5;
+            this.endGameTextTitle.x = this.endGameTextDescription.x = this.game.world.centerX;
+            this.endGameTextTitle.y = 100;
+            this.endGameTextDescription.y = 200;
+            this.endBtn = this.game.add.sprite(0, 0, 'endgame-btn');
+            this.endBtn.inputEnabled = true;
+            this.endBtn.input.useHandCursor = true;
+            this.endBtn.anchor.x = .5;
+            this.endBtn.x = this.game.world.centerX;
+            this.endBtn.y = 300;
+            this.endBtn.events.onInputUp.add(function () {
+                // this.transition.change('Main');
+                _this.playAgain();
+            }, this);
+            this.endgameScree = new Pk.PkElement(this.game);
+            this.endgameScree.add(this.bg);
+            this.endgameScree.add(this.endBtn);
+            this.endgameScree.add(this.endGameTextTitle);
+            this.endgameScree.add(this.endGameTextDescription);
+            this.endgameScree.visible = false;
         };
         Main.prototype.playSound = function () {
             // play music
-            // this.musicBG.fadeIn(1000, true);
-            this.musicBG.play('', 0, 1, true);
+            this.musicBG.fadeIn(1000, true);
+            // this.musicBG.play('', 0, 1, true);
+        };
+        Main.prototype.playAgain = function () {
+            this.endgameScree.visible = false;
+            this.saci.playNextMove();
+            this.presentation.restart();
         };
         /*
         resetPacks()

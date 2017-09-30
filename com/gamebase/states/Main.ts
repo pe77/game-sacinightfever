@@ -18,6 +18,15 @@ module GameBase
 
 		musicBG:Phaser.Sound;
 
+
+		endgameScree:Pk.PkElement;
+        bg:Phaser.Sprite;
+		endGameTextTitle:Phaser.Text;
+		endBtn:Phaser.Sprite;
+		endGameTextDescription:Phaser.Text;
+		saci:Saci.Saci;
+
+
 		init(...args:any[])
 		{
 			super.init(args); // if whant override init, you need this line!
@@ -75,24 +84,24 @@ module GameBase
 
 			this.presentation.start(1);
 
-			var saci:Saci.Saci = new Saci.Saci(this.game);
-			saci.addMove(new Saci.Move1(this.game));
-			saci.addMove(new Saci.Move2(this.game));
-			saci.addMove(new Saci.Move3(this.game));
-			saci.addMove(new Saci.Move2(this.game));
-			saci.create();
+			this.saci = new Saci.Saci(this.game);
+			this.saci.addMove(new Saci.Move1(this.game));
+			this.saci.addMove(new Saci.Move2(this.game));
+			this.saci.addMove(new Saci.Move3(this.game));
+			this.saci.addMove(new Saci.Move2(this.game));
+			this.saci.create();
 
-			saci.x = this.game.world.centerX - 80;
-			saci.y += 300;
+			this.saci.x = this.game.world.centerX - 80;
+			this.saci.y += 300;
 
 			// coloca ele paradinho com a bunda kk
-			saci.moves[0].spriteBase.visible = true;
+			this.saci.moves[0].spriteBase.visible = true;
 
 			// quando tocar a primeira nota, começa a dançar
 			this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnFirstNote, ()=>{
 				console.log('FIRST NOTE')
 				
-				saci.playNextMove();
+				this.saci.playNextMove();
 				/*
 				setInterval(()=>{
 					saci.playNextMove();
@@ -102,25 +111,105 @@ module GameBase
 
 			this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnChangeStepPack, ()=>{
 				console.log('CHANGE PACK')
-				saci.playNextMove();
+				this.saci.playNextMove();
 			}, this);
 
 			this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnMissStep, ()=>{
 				console.log('--- wrongMove')
-				saci.wrongMove();
+				this.saci.wrongMove();
+			}, this);
+
+			this.presentation.event.add(GameBase.Presentation.E.PresentationEvent.OnEndGame, (e, win)=>{
+				console.log('win::', win)
+
+				if(win)
+				{
+					this.endGameTextDescription.text = "Você ganhou. Quem diria!\n         Dinheiros: " + this.presentation.score.value;
+				}else{
+					this.endGameTextDescription.text = "Você perdeu. Poxa vida...\n          Dinheiros: " + this.presentation.score.value;
+				}
+
+				this.endgameScree.visible = true;
 			}, this);
 
 			// audio
             this.musicBG = this.game.add.audio('main-dance');
             this.musicBG.onDecoded.add(this.playSound, this); // load
+
+
+			// bg bg! // same world size
+			this.bg = Pk.PkUtils.createSquare(this.game, this.game.world.width, this.game.world.height, "#000")
+			this.bg.alpha = .95;
+
+			this.endGameTextTitle = this.game.add.text(0, 0,
+				"Fim de Jogo", // text
+				{
+					font: "58px Love Story Rough",
+					fill: "#c8c8c8"
+				} // font style
+			);
+
+
+			this.endGameTextDescription = this.game.add.text(0, 0,
+				"Você ganhou. Quem diria!\n         Dinheiros: 134", // text
+				{
+					font: "36px Love Story Rough",
+					fill: "#c8c8c8",
+					boundsAlignH: "center", 
+					boundsAlignV: "middle" 
+				} // font style
+			);
+
+			
+			
+			this.endGameTextDescription.anchor.x = this.endGameTextTitle.anchor.x = 0.5;
+			this.endGameTextTitle.x = this.endGameTextDescription.x = this.game.world.centerX;
+			this.endGameTextTitle.y = 100;
+
+			this.endGameTextDescription.y = 200;
+
+			this.endBtn = this.game.add.sprite(0, 0, 'endgame-btn');
+
+			this.endBtn.inputEnabled = true;
+            this.endBtn.input.useHandCursor = true;
+
+			this.endBtn.anchor.x = .5;
+            this.endBtn.x = this.game.world.centerX;
+			this.endBtn.y = 300;
+
+            this.endBtn.events.onInputUp.add(()=>{
+                // this.transition.change('Main');
+				this.playAgain();
+            }, this)
+
+
+			this.endgameScree = new Pk.PkElement(this.game);
+			this.endgameScree.add(this.bg);
+			this.endgameScree.add(this.endBtn);
+			this.endgameScree.add(this.endGameTextTitle);
+			this.endgameScree.add(this.endGameTextDescription);
+			
+
+
+			
+
+			this.endgameScree.visible = false;
+			
 		}
 
 		playSound()
         {
             // play music
-            // this.musicBG.fadeIn(1000, true);
-			this.musicBG.play('', 0, 1, true);
+            this.musicBG.fadeIn(1000, true);
+			// this.musicBG.play('', 0, 1, true);
         }
+
+		playAgain()
+		{
+			this.endgameScree.visible = false;
+			this.saci.playNextMove();
+			this.presentation.restart();
+		}
 
 		/*
 		resetPacks()

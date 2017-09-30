@@ -16,6 +16,12 @@ module GameBase
 
             firstNote:boolean = true;
 
+
+            
+
+            // sfx
+            sfxEndGameLose:Phaser.Sound;
+
             constructor(game:Pk.PkGame)
             {
                 super(game);
@@ -30,6 +36,9 @@ module GameBase
                 this.timeBar.create();
                 this.score.create();
                 this.level.create();
+
+
+                this.sfxEndGameLose = this.game.add.sound('sfx-endgame-lose');
 
                 // eventos
 
@@ -122,16 +131,16 @@ module GameBase
 
             playNextLevel(hit:boolean, originalPackSize:number)
             {
-                // almenta a dificuldade, se acertou
-                if(hit)
-                    this.level.setLevel(this.level.level+1);
-                //
-
-                if(this.level.level == 3)
+                if(this.level.level == 12 && hit)
                 {
                     this.endGame(true);
                     return;
                 }
+
+                // almenta a dificuldade, se acertou
+                if(hit)
+                    this.level.setLevel(this.level.level+1);
+                //
 
                 // add umas notinhas
                 this.prepare();
@@ -235,6 +244,8 @@ module GameBase
 			    this.score.y += 20;
 
                 this.level.y = this.score.y + this.score.height + 30;
+
+                
             }
 
             endGame(win:boolean = false)
@@ -244,16 +255,20 @@ module GameBase
                 // para o tempo
                 this.timeBar.stopCount();
 
+                /*
                 if(win)
                 {
                     alert("GANHOUUU...\nScore: [Temers: "+this.score.value+']\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ');
                 }else{
+                    
+                    this.sfxEndGameLose.play();
                     alert("ERRRROUU...\nScore: [Temers: "+this.score.value+']\nRecarregue para tentar novamente!(vai ser rápido, está cacheado ;) ');
                 }
+                */
 
-                this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnFirstNote, win);
+                this.event.dispatch(GameBase.Presentation.E.PresentationEvent.OnEndGame, win);
 
-                this.restart();
+                // this.restart();
             }
 
             restart()
