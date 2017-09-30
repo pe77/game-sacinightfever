@@ -563,6 +563,7 @@ var GameBase;
         Loader.prototype.preload = function () {
             // ignore preloading bar
             // super.preload();
+            var _this = this;
             // creating sprites from preloadead images
             // this.logo           = this.add.sprite(0, 0, 'game-loading-logo');
             // create custom loading bar
@@ -570,7 +571,22 @@ var GameBase;
             // set sprite as preloading
             this.load.setPreloadSprite(this.loadingBar);
             // pos loading bar on bot
-            this.loadingBar.y = this.world.height - this.loadingBar.height - 80;
+            this.loadingBar.y = this.world.height - this.loadingBar.height - 250;
+            this.loadingText = this.game.add.text(0, 0, '0%', // text
+            {
+                font: "120px Love Story Rough",
+                fill: "#ffffff"
+            } // font style
+            );
+            this.loadingText.anchor.set(.5, .5);
+            this.loadingText.x = this.world.centerX;
+            this.loadingText.y = this.world.centerY;
+            // fileComplete
+            // this.fil
+            this.game.load.onFileComplete.add(function (progress) {
+                var v = Math.round((progress * 0.01) * 100);
+                _this.loadingText.text = v + '%';
+            }, this);
             //  ** ADDING Other things  ** //
             // scripts
             this.load.script('gray', 'assets/default/scripts/filters/Gray.js');

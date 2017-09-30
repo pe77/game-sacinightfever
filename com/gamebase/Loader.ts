@@ -44,7 +44,27 @@ module GameBase {
             this.load.setPreloadSprite(this.loadingBar);
 
             // pos loading bar on bot
-            this.loadingBar.y = this.world.height - this.loadingBar.height - 80;
+            this.loadingBar.y = this.world.height - this.loadingBar.height - 250;
+
+            this.loadingText = this.game.add.text(0, 0,
+				'0%', // text
+				{
+					font: "120px Love Story Rough",
+					fill: "#ffffff"
+				} // font style
+			);
+            this.loadingText.anchor.set(.5, .5);
+
+            this.loadingText.x = this.world.centerX;
+            this.loadingText.y = this.world.centerY;
+
+            // fileComplete
+            // this.fil
+            this.game.load.onFileComplete.add((progress:number)=>{
+                var v:number = Math.round((progress * 0.01) * 100);
+                this.loadingText.text = v + '%';
+            }, this)
+
 
             //  ** ADDING Other things  ** //
 
